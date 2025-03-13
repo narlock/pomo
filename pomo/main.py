@@ -11,6 +11,7 @@ import countdown_timer
 import sys
 import os
 import pomo_key
+import settings
 
 # Other
 POMO_ANSI = ["", "", "", "", ""]
@@ -22,6 +23,8 @@ def show_help():
     pass
 
 def show_main_menu():
+    user_settings = settings.load_settings()
+
     os.system('clear')
     countdown_timer.draw_border(POMO_ANSI, constants.VERSION_INFO)
     print(f"{ansi.RESET}{ansi.center_text(constants.MENU_CONTROLS)}")
@@ -40,7 +43,7 @@ def show_main_menu():
         os.system('clear')
 
         # TODO make this load from the settings
-        countdown_timer.countdown_timer(2)
+        countdown_timer.previous_pomodoro(user_settings)
         pass
 
 def main():

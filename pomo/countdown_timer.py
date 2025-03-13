@@ -114,6 +114,13 @@ def countdown_end():
     # Wait for user input and stop everything
     wait_for_user_input(stop_event)
 
+def previous_pomodoro(user_settings):
+    """
+    Begins the previous pomodoro.
+    """
+    # TODO
+    countdown_timer(user_settings['previousPomo']['focusTime'])
+
 def countdown_timer(total_seconds):
     """Runs the countdown timer."""
     for remaining in range(total_seconds, -1, -1):

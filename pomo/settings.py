@@ -7,14 +7,18 @@ This file controls reading and writing settings to
 """
 
 import json
+import os
+from pathlib import Path
+
+SETTINGS_PATH = Path.home() / "Documents" / "narlock" / "pomo" / "settings.json"
 
 DEFAULT_POMO = {
     "name": "Default",                                                      # The name of the custom pomo setting.
-    "focusTime": 25,                                                        # The amount of time in minutes a focus session will be.
-    "breakTime": 5,                                                         # The amount of time in minutes a break will be.
+    "focusTime": 1500,                                                      # The amount of time in seconds a focus session will be.
+    "breakTime": 300,                                                       # The amount of time in seconds a break will be.
     "sessionCount": 1,                                                      # The number of sessions in the pomodoro.
     "longBreak": False,                                                     # Indicates that long break is enabled.
-    "longBreakTime": 15,                                                    # The amount of time in minutes a long break will be.
+    "longBreakTime": 900,                                                   # The amount of time in seconds a long break will be.
     "longBreakAfterSessions": [],                                           # The break indices that will use longBreakTime over breakTime.
     "autoStartNextSession": False,                                          # Automatically starts the next focus session after a break ends.
     "autoStartBreak": False,                                                # Automatically starts a break after a focus session ends.
@@ -36,20 +40,52 @@ INITIAL_SETTINGS = {
     "title": "POMO",
     "previousPomo": DEFAULT_POMO,
     "pomos": [
-        {
-            DEFAULT_POMO
-        }
+        DEFAULT_POMO
     ]
 }
 
-"""
-Called when there is no settings.json, this function
-will create the initial settings inside of a newly
-created settings.json file. For whatever reason,
-if the settings.json file is tampered with, a
-suggestion to reset to default will be available
-and will call this function.
-"""
 def write_initial_settings():
-    pass
+    """
+    Called when there is no settings.json, this function
+    will create the initial settings inside of a newly
+    created settings.json file. For whatever reason,
+    if the settings.json file is tampered with, a
+    suggestion to reset to default will be available
+    and will call this function.
+    """
+    settings_dir = SETTINGS_PATH.parent
+    settings_dir.mkdir(parents=True, exist_ok=True)
+    
+    with open(SETTINGS_PATH, 'w', encoding='utf-8') as f:
+        json.dump(INITIAL_SETTINGS, f, indent=4)
+    print("Initial settings.json file created.")
 
+def update_settings(settings):
+    """
+    Updates the settings.json file with an updated
+    settings object.
+    """
+    try:
+        with open(SETTINGS_PATH, 'w', encoding='utf-8') as f:
+            json.dump(settings, f, indent=4)
+        print("Settings updated successfully.")
+    except Exception as e:
+        print(f"Error updating settings: {e}")
+
+def load_settings():
+    """
+    Reads settings from $HOME/Documents/narlock/pomo/settings.json.
+    If any of the directories or paths do not exist, we will run
+    write_initial_settings function, and then reload our settings.
+    """
+    if not SETTINGS_PATH.exists():
+        print("Settings file not found. Creating initial settings.")
+        write_initial_settings()
+    
+    try:
+        with open(SETTINGS_PATH, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading settings: {e}. Resetting to default.")
+        write_initial_settings()
+        return INITIAL_SETTINGS
