@@ -6,26 +6,11 @@ This is the main file for the Pomo application.
 """
 
 import ansi
+import constants
 import countdown_timer
 import sys
 import os
 import pomo_key
-
-# Development Information
-VERSION_INFO = f"{ansi.BLUE}{ansi.BOLD}v1.0.0 - Created by {ansi.ansi_link('https://github.com/narlock', 'narlock')}"
-
-# Command Information
-MENU_CONTROLS = f"""
-1. Start pomo with previous setting.
-2. Start new pomo with new setting. 
-3. Enter settings.                  
-CTRL + C: Quit Pomo                 
-"""
-HELP_CMD = "-help"
-EXIT_CMD = "\x03"
-
-# Storage information
-STORAGE_DIR = os.path.expanduser("~/Documents/narlock/pomo")
 
 # Other
 POMO_ANSI = ["", "", "", "", ""]
@@ -38,17 +23,32 @@ def show_help():
 
 def show_main_menu():
     os.system('clear')
-    countdown_timer.draw_border(POMO_ANSI, VERSION_INFO)
-    print(f"{ansi.RESET}{ansi.center_text(MENU_CONTROLS)}")
+    countdown_timer.draw_border(POMO_ANSI, constants.VERSION_INFO)
+    print(f"{ansi.RESET}{ansi.center_text(constants.MENU_CONTROLS)}")
     print(f"\n{ansi.YELLOW}Choose selection...{ansi.RESET} ")
+    
+    # Get user key press
     key = pomo_key.get_keypress()
+    if key == constants.EXIT_CMD:
+        # Exit the application
+        print(f"{ansi.RED}Exiting Pomo...{ansi.RESET}")
+        os.system('clear')
+        sys.exit(0)
+    elif key == constants.KEY_1:
+        # Load and start previous pomodoro
+        print(f"{ansi.GREEN}Starting previous pomodoro...{ansi.RESET}")
+        os.system('clear')
+
+        # TODO make this load from the settings
+        countdown_timer.countdown_timer(2)
+        pass
 
 def main():
     args = sys.argv[1:]
 
     if not args:
         show_main_menu()
-    elif args[0] == HELP_CMD:
+    elif args[0] == constants.HELP_CMD:
         show_help()
     else:
         show_main_menu()
