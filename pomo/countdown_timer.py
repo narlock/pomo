@@ -4,6 +4,9 @@ import os
 import sys
 import threading
 import subprocess
+import signal
+
+timer_settings = None
 
 def draw_border(content, message=None, color=ansi.RED):
     """Draws a box border around the ASCII time display, centered both horizontally and vertically."""
@@ -55,7 +58,34 @@ def handle_resize(signum, frame):
 # Register SIGWINCH signal handler (Unix only)
 # signal.signal(signal.SIGWINCH, handle_resize)
 
-def flashing_alert(stop_event):
+stop_event = threading.Event()  # Shared stop event for graceful shutdown
+sound_process = None  # To track sound subprocess
+
+def handle_exit(signum, frame):
+    """Handles exit signals (SIGINT, SIGHUP, SIGTERM) and ensures proper cleanup."""
+    print("\nReceived exit signal, cleaning up...")
+
+    # Stop flashing alert
+    stop_event.set()
+
+    # Terminate sound process if running
+    global sound_process
+    if sound_process and sound_process.poll() is None:
+        sound_process.terminate()
+        sound_process.wait()
+
+    # Clear screen before exiting (optional)
+    os.system("clear" if os.name == "posix" else "cls")
+
+    print("Exited cleanly.")
+    sys.exit(0)  # Ensure a clean exit
+
+# Register signal handlers
+signal.signal(signal.SIGINT, handle_exit)   # Handle Ctrl+C
+signal.signal(signal.SIGHUP, handle_exit)   # Handle terminal close (Unix)
+signal.signal(signal.SIGTERM, handle_exit)  # Handle kill command
+
+def flashing_alert():
     """Flashes the screen repeatedly showing 00:00 until the user presses Enter."""
     def flash():
         while not stop_event.is_set():
@@ -69,21 +99,25 @@ def flashing_alert(stop_event):
     flash_thread = threading.Thread(target=flash, daemon=True)
     flash_thread.start()
 
-def play_sound_loop(sound_path, volume, stop_event):
+def play_sound_loop(sound_path, volume):
     """Continuously plays the alarm sound until the user presses ENTER."""
     global sound_process
     while not stop_event.is_set():
-        if sys.platform == "win32":
-            sound_process = subprocess.Popen([
-                "ffmpeg", "-i", sound_path, "-filter:a", f"volume={volume}", "-f", "wav", "pipe:1"
-            ], stdout=subprocess.PIPE)
-            subprocess.Popen(["powershell", "-c", "(New-Object Media.SoundPlayer).PlaySync()"], stdin=sound_process.stdout)
-        elif sys.platform == "darwin":  # macOS
-            sound_process = subprocess.Popen(["afplay", "-v", volume, sound_path])
-        elif sys.platform == "linux":
-            sound_process = subprocess.Popen(["play", sound_path, "vol", volume])
+        try:
+            if sys.platform == "win32":
+                sound_process = subprocess.Popen([
+                    "ffmpeg", "-i", sound_path, "-filter:a", f"volume={volume}", "-f", "wav", "pipe:1"
+                ], stdout=subprocess.PIPE)
+                subprocess.Popen(["powershell", "-c", "(New-Object Media.SoundPlayer).PlaySync()"], stdin=sound_process.stdout)
+            elif sys.platform == "darwin":  # macOS
+                sound_process = subprocess.Popen(["afplay", "-v", volume, sound_path])
+            elif sys.platform == "linux":
+                sound_process = subprocess.Popen(["play", sound_path, "vol", volume])
 
-        sound_process.wait()
+            sound_process.wait()
+        except Exception as e:
+            print(f"Error playing sound: {e}")
+            break
 
 def wait_for_user_input(stop_event):
     """Waits for the user to press ENTER, then stops the flashing and sound."""
@@ -102,23 +136,29 @@ def countdown_end():
         print("Error: Sound file not found!")
         sys.exit(1)
 
-    stop_event = threading.Event()
-
-    # TODO only flash if enabled...
     # Start flashing and playing sound in parallel
-    flashing_alert(stop_event)
-    # TODO only play sound if enabled...
-    sound_thread = threading.Thread(target=play_sound_loop, args=(sound_file, "0.5", stop_event), daemon=True)
+    flashing_alert()
+    sound_thread = threading.Thread(target=play_sound_loop, args=(sound_file, "0.5"), daemon=True)
     sound_thread.start()
 
     # Wait for user input and stop everything
-    wait_for_user_input(stop_event)
+    input()
+    stop_event.set()
+
+    # Ensure sound process is terminated
+    global sound_process
+    if sound_process and sound_process.poll() is None:
+        sound_process.terminate()
+        sound_process.wait()
+
+    print("\nTimer acknowledged. Exiting...\n")
 
 def previous_pomodoro(user_settings):
     """
     Begins the previous pomodoro.
     """
     # TODO
+
     countdown_timer(user_settings['previousPomo']['focusTime'])
 
 def countdown_timer(total_seconds):

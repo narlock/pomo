@@ -28,3 +28,7 @@ KEY_0 = "0"
 
 # Storage information
 STORAGE_DIR = os.path.expanduser("~/Documents/narlock/pomo")
+
+
+CHOOSE_SELECTION = f"\n{ansi.YELLOW}Choose selection...{ansi.RESET} "
+INVALID_SELECTION = f"\n{ansi.RED}Invalid option...{ansi.RESET} "

@@ -41,7 +41,45 @@ INITIAL_SETTINGS = {
     "previousPomo": DEFAULT_POMO,
     "pomos": [
         DEFAULT_POMO
-    ]
+    ],
+    "currentFocusStreak": 0,
+    "longestFocusStreak": 0,
+    "totalNumberOfSessions": 0,
+    "totalNumberOfBreaks": 0,
+    "totalFocusTime": 0,
+    "year": {
+        2025: {
+            "longestFocusStreak": 0,
+            "totalNumberOfSessions": 0,
+            "totalNumberOfBreaks": 0,
+            "totalFocusTime": 0,
+            "totalBreakTime": 0,
+            "month": {
+                1: {
+                    "totalNumberOfSessions": 0,
+                    "totalNumberOfBreaks": 0,
+                    "totalFocusTime": 0,
+                    "totalBreakTime": 0,
+                    "dayFocus": {
+                        1: {
+                            "totalNumberOfSessions": 0,
+                            "totalNumberOfBreaks": 0,
+                            "totalFocusTime": 0,
+                            "totalBreakTime": 0,
+                            "sessions": [
+                                {
+                                    "startTime": "8:00",
+                                    "endTime": "9:00",
+                                    "focusTime": 50,
+                                    "breakTime": 10
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 def write_initial_settings():

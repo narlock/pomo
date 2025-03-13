@@ -13,6 +13,8 @@ import os
 import pomo_key
 import settings
 
+user_settings = None
+
 # Other
 POMO_ANSI = ["", "", "", "", ""]
 for char in 'POMO':
@@ -22,20 +24,18 @@ for char in 'POMO':
 def show_help():
     pass
 
-def show_main_menu():
-    user_settings = settings.load_settings()
-
+def show_main_menu(selection=constants.CHOOSE_SELECTION):
     os.system('clear')
     countdown_timer.draw_border(POMO_ANSI, constants.VERSION_INFO)
     print(f"{ansi.RESET}{ansi.center_text(constants.MENU_CONTROLS)}")
-    print(f"\n{ansi.YELLOW}Choose selection...{ansi.RESET} ")
+    print(selection)
     
     # Get user key press
     key = pomo_key.get_keypress()
     if key == constants.EXIT_CMD:
         # Exit the application
-        print(f"{ansi.RED}Exiting Pomo...{ansi.RESET}")
         os.system('clear')
+        print(f"{ansi.RED}Exiting Pomo...{ansi.RESET}")
         sys.exit(0)
     elif key == constants.KEY_1:
         # Load and start previous pomodoro
@@ -45,9 +45,15 @@ def show_main_menu():
         # TODO make this load from the settings
         countdown_timer.previous_pomodoro(user_settings)
         pass
+    else:
+        show_main_menu(constants.INVALID_SELECTION)
 
 def main():
     args = sys.argv[1:]
+
+    # Load user settings
+    global user_settings
+    user_settings = settings.load_settings()
 
     if not args:
         show_main_menu()
