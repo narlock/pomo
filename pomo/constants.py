@@ -4,7 +4,7 @@ import re
 
 def get_version_info(subtext_color_str: str = 'BLUE'):
     color = ansi.str_to_color(subtext_color_str)
-    return f"{color}{ansi.BOLD}v1.0.0 - Created by {ansi.ansi_link('https://github.com/narlock', 'narlock')}" 
+    return f"{color}{ansi.BOLD}v1.0.0-beta.1 - Created by {ansi.ansi_link('https://github.com/narlock', 'narlock')}" 
 
 # Command Information
 MENU_CONTROLS = f"""
