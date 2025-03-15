@@ -1,8 +1,10 @@
 import ansi
 import os
+import re
 
-# Development Information
-VERSION_INFO = f"{ansi.BLUE}{ansi.BOLD}v1.0.0 - Created by {ansi.ansi_link('https://github.com/narlock', 'narlock')}"
+def get_version_info(subtext_color_str: str = 'BLUE'):
+    color = ansi.str_to_color(subtext_color_str)
+    return f"{color}{ansi.BOLD}v1.0.0 - Created by {ansi.ansi_link('https://github.com/narlock', 'narlock')}" 
 
 # Command Information
 MENU_CONTROLS = f"""
@@ -46,6 +48,28 @@ KEY_0 = "0"
 # Storage information
 STORAGE_DIR = os.path.expanduser("~/Documents/narlock/pomo")
 
-
+# Selection
 CHOOSE_SELECTION = f"\n{ansi.YELLOW}Choose selection...{ansi.RESET} "
 INVALID_SELECTION = f"\n{ansi.RED}Invalid option...{ansi.RESET} "
+
+# Source
+MAIN_MENU_SOURCE = 0
+COMMAND_LINE_SOURCE = 1
+
+# End options
+MAIN_MENU_END_OPTION = 0
+CONTINUE_TO_BREAK_END_OPTION = 1
+CONTINUE_TO_NEXT_SESSION_END_OPTION = 2
+TERMINATE_END_OPTION = 3
+
+# Helper functions
+CURRENT_SESSION_PLACEHOLDER = 'current_session'
+TOTAL_SESSIONS_PLACEHOLDER = 'total_sessions'
+
+def replace_placeholder(message: str, placeholder: str, replacement: str):
+    pattern = r'\$\{' + re.escape(placeholder) + r'\}'
+    return re.sub(pattern, replacement, message)
+
+# Error messages
+def POMO_NOT_FOUND(pomo_name: str):
+    return f"{ansi.RED}Pomo `{pomo_name}` was not found Use `pomo -ls` to view pomos."

@@ -66,6 +66,45 @@ BG_BRIGHT_MAGENTA = "\033[105m"
 BG_BRIGHT_CYAN = "\033[106m"
 BG_BRIGHT_WHITE = "\033[107m"
 
+COLOR_MAP = {
+    "black": BLACK,
+    "red": RED,
+    "green": GREEN,
+    "yellow": YELLOW,
+    "blue": BLUE,
+    "magenta": MAGENTA,
+    "cyan": CYAN,
+    "white": WHITE,
+    "orange": ORANGE,
+    
+    "bright_black": BRIGHT_BLACK,
+    "bright_red": BRIGHT_RED,
+    "bright_green": BRIGHT_GREEN,
+    "bright_yellow": BRIGHT_YELLOW,
+    "bright_blue": BRIGHT_BLUE,
+    "bright_magenta": BRIGHT_MAGENTA,
+    "bright_cyan": BRIGHT_CYAN,
+    "bright_white": BRIGHT_WHITE,
+
+    "bg_black": BG_BLACK,
+    "bg_red": BG_RED,
+    "bg_green": BG_GREEN,
+    "bg_yellow": BG_YELLOW,
+    "bg_blue": BG_BLUE,
+    "bg_magenta": BG_MAGENTA,
+    "bg_cyan": BG_CYAN,
+    "bg_white": BG_WHITE,
+
+    "bg_bright_black": BG_BRIGHT_BLACK,
+    "bg_bright_red": BG_BRIGHT_RED,
+    "bg_bright_green": BG_BRIGHT_GREEN,
+    "bg_bright_yellow": BG_BRIGHT_YELLOW,
+    "bg_bright_blue": BG_BRIGHT_BLUE,
+    "bg_bright_magenta": BG_BRIGHT_MAGENTA,
+    "bg_bright_cyan": BG_BRIGHT_CYAN,
+    "bg_bright_white": BG_BRIGHT_WHITE
+}
+
 # Reset Color
 RESET = "\033[0m"
 
@@ -215,3 +254,9 @@ def get_terminal_size():
     """Returns the current terminal width and height."""
     size = shutil.get_terminal_size()
     return size.columns, size.lines
+
+def str_to_color(color_name: str):
+    """
+    Returns the ANSI escape code for the given color name.
+    """
+    return COLOR_MAP.get(color_name.lower(), "")

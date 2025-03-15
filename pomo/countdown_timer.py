@@ -6,12 +6,19 @@ import sys
 import threading
 import subprocess
 import signal
+import settings
+import constants
 
+stop_event = threading.Event()  # Shared stop event for graceful shutdown
+sound_process = None  # To track sound subprocess
+
+pomo = None
+pomo_source = constants.COMMAND_LINE_SOURCE
 sessions = 0
 current_session = 0
 isBreak = False
 
-def draw_border(content, message=None, color=ansi.RED):
+def draw_border(content, message: str = None, border_color = ansi.RED, text_color = ansi.YELLOW):
     """Draws a box border around the ASCII time display, centered both horizontally and vertically."""
     width = len(content[0]) + 3  # Box width
     height = len(content) + 4  # Box height (including top & bottom padding)
@@ -30,16 +37,23 @@ def draw_border(content, message=None, color=ansi.RED):
     border_top = padding_x + "┌" + "─" * width + "┐"
     border_bottom = padding_x + "└" + "─" * width + "┘"
 
-    print(color + border_top + ansi.RESET)
-    print(padding_x + color + f"│{' ' * width}│" + ansi.RESET)  # Top padding
+    print(ansi.RESET + border_color + border_top + ansi.RESET)
+    print(padding_x + border_color + f"│{' ' * width}│" + ansi.RESET)  # Top padding
     for line in content:
-        print(padding_x + color + f"│  {ansi.YELLOW}{line}{color} │" + ansi.RESET)  # Keep clock ANSI colors
-    print(padding_x + color + f"│{' ' * width}│" + ansi.RESET)  # Bottom padding
-    print(color + border_bottom + ansi.RESET)
+        print(padding_x + border_color + f"│  {text_color}{line}{border_color} │" + ansi.RESET)  # Keep clock ANSI colors
+    print(padding_x + border_color + f"│{' ' * width}│" + ansi.RESET)  # Bottom padding
+    print(border_color + border_bottom + ansi.RESET)
 
     # Display the message centered below the timer
     if message:
-        print("\n" + ansi.center_text(message))
+        if pomo:
+            # Format message to include current session if ${current_session} is present.
+            message = constants.replace_placeholder(message, constants.CURRENT_SESSION_PLACEHOLDER, str(current_session + 1))
+            # Format message to include total session if ${total_sessions} is present.
+            message = constants.replace_placeholder(message, constants.TOTAL_SESSIONS_PLACEHOLDER, str(pomo.get('sessionCount', 1)))
+            print("\n" + f"{ansi.str_to_color(pomo.get('color')['subtext'])}{ansi.BOLD}{ansi.center_text(message)}")
+        else:
+            print("\n" + f"{ansi.BOLD}{ansi.center_text(message)}")
 
 def generate_ascii_time(minutes, seconds):
     """Generates the ASCII representation of the time (MM:SS)."""
@@ -61,9 +75,6 @@ def handle_resize(signum, frame):
 # Register SIGWINCH signal handler (Unix only)
 # signal.signal(signal.SIGWINCH, handle_resize)
 
-stop_event = threading.Event()  # Shared stop event for graceful shutdown
-sound_process = None  # To track sound subprocess
-
 def handle_exit(signum, frame):
     """Handles exit signals (SIGINT, SIGHUP, SIGTERM) and ensures proper cleanup."""
     print("\nReceived exit signal, cleaning up...")
@@ -80,7 +91,12 @@ def handle_exit(signum, frame):
     # Clear screen before exiting (optional)
     os.system("clear" if os.name == "posix" else "cls")
 
-    print("Exited cleanly.")
+    # TODO track the amount of time in either focus or break time and ensure we track that time and session.
+    # If we only focused and did not do the break, the breakTime will be 0 for the session.
+
+    print(f"{ansi.GREEN}Exited pomo...\nFocus/Break time saved to disk.")
+    # TODO modify this so that we only close if the context was opened directly from the CLI
+    # If the context was opened using the main menu, instead of exiting, we will call main.show_main_menu
     sys.exit(0)  # Ensure a clean exit
 
 # Register signal handlers
@@ -90,14 +106,29 @@ signal.signal(signal.SIGTERM, handle_exit)  # Handle kill command
 
 def flashing_alert():
     """Flashes the screen repeatedly showing 00:00 until the user presses Enter."""
+    message = "Press ENTER to acknowledge..."
+    
+    if pomo and isBreak:
+        message = "Break is over!"
+    elif pomo and not isBreak:
+        message = "Session is over!"
+
     def flash():
         while not stop_event.is_set():
-            for color in [ansi.RED, ansi.WHITE]:  # Alternate between red and white
-                if stop_event.is_set():
-                    return  # Stop flashing immediately if flag is set
-                os.system('clear')
-                draw_border(generate_ascii_time(0, 0), f"{ansi.BLUE}Press ENTER to acknowledge...", color=color)
-                time.sleep(0.5)  # Adjust flash speed
+            if not pomo:
+                for color in [ansi.RED, ansi.WHITE]:  # Alternate between red and white
+                    if stop_event.is_set():
+                        return  # Stop flashing immediately if flag is set
+                    os.system('clear')
+                    draw_border(generate_ascii_time(0, 0), f"{ansi.BLUE}{message}", border_color=color)
+                    time.sleep(0.5)  # Adjust flash speed
+            else:
+               for color in [ansi.str_to_color(pomo['color']['border']), ansi.WHITE]:  # Alternate between red and white
+                    if stop_event.is_set():
+                        return  # Stop flashing immediately if flag is set
+                    os.system('clear')
+                    draw_border(generate_ascii_time(0, 0), f"{ansi.str_to_color(pomo['color']['subtext'])}{message}", border_color=color, text_color=ansi.str_to_color(pomo['color']['time']))
+                    time.sleep(0.5)  # Adjust flash speed 
 
     flash_thread = threading.Thread(target=flash, daemon=True)
     flash_thread.start()
@@ -105,6 +136,7 @@ def flashing_alert():
 def play_sound_loop(sound_path, volume):
     """Continuously plays the alarm sound until the user presses ENTER."""
     global sound_process
+    
     while not stop_event.is_set():
         try:
             if sys.platform == "win32":
@@ -115,9 +147,8 @@ def play_sound_loop(sound_path, volume):
             elif sys.platform == "darwin":  # macOS
                 sound_process = subprocess.Popen(["afplay", "-v", volume, sound_path])
             elif sys.platform == "linux":
-                sound_process = subprocess.Popen(["play", sound_path, "vol", volume])
+                sound_process = subprocess.Popen(["play", sound_path, "repeat", "999", "vol", volume])  # Loop infinitely
 
-            sound_process.wait()
         except Exception as e:
             print(f"Error playing sound: {e}")
             break
@@ -131,72 +162,156 @@ def wait_for_user_input(stop_event):
     if sound_process and sound_process.poll() is None:
         sound_process.terminate()
 
-def countdown_end(option=0):
+def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
     """Plays an alarm with both flashing and sound, stopping when user presses ENTER."""
-    sound_file = os.path.join("sfx", "DEFAULT_ALARM.wav")
+    global isBreak
+    global current_session
+    global isBreak
 
-    if not os.path.exists(sound_file):
-        print("Error: Sound file not found!")
-        sys.exit(1)
+    stop_event.clear()
+    # TODO fix sound logic... May need reimplementation... Causes distortion with the threads.
+    # sound_file = os.path.join("sfx", "DEFAULT_ALARM.wav")
+
+    # if not os.path.exists(sound_file):
+    #     print("Error: Sound file not found!")
+    #     sys.exit(1)
 
     # Start flashing and playing sound in parallel
     flashing_alert()
-    sound_thread = threading.Thread(target=play_sound_loop, args=(sound_file, "0.5"), daemon=True)
-    sound_thread.start()
+    # sound_thread = threading.Thread(target=play_sound_loop, args=(sound_file, "0.5"), daemon=True)
+    # sound_thread.start()
 
     # Wait for user input and stop everything
     input()
     stop_event.set()
 
     # Ensure sound process is terminated
-    global sound_process
-    if sound_process and sound_process.poll() is None:
-        sound_process.terminate()
-        sound_process.wait()
+    # global sound_process
+    # if sound_process and sound_process.poll() is None:
+    #     sound_process.terminate()
+    #     sound_process.wait()
 
-    if option == 0:
-        main.show_main_menu()
-    elif option == 1:
-        # continue to next break
-        pass
-    elif option == 2:
+    if option == constants.MAIN_MENU_END_OPTION:
+        main.show_main_menu(message = "Timer ended!")
+    elif pomo and option == constants.CONTINUE_TO_BREAK_END_OPTION:
+        # continue to next break       
+        isBreak = True
+
+        # TODO if the current session is the final session, end the pomo.
+
+        # TODO determine that if the current_session is a long break, use long break for next countdown timer call
+        countdown_timer(pomo.get('shortBreakTime'), pomo.get('breakMessage'), constants.CONTINUE_TO_NEXT_SESSION_END_OPTION)
+
+    elif pomo and option == constants.CONTINUE_TO_NEXT_SESSION_END_OPTION:
         # continue to next focus session
-        pass
+        isBreak = False
+        current_session = current_session + 1
+
+        if current_session == sessions:
+            # End the pomo
+            if pomo_source and pomo_source == constants.MAIN_MENU_SOURCE:
+                # TODO add more verbose pomo complete message... including total focus time?
+                main.show_main_menu(constants.CHOOSE_SELECTION, f'{ansi.GREEN}{ansi.BOLD}Pomo Completed!')
+            else:
+                os.system('clear')
+                print(f"{ansi.GREEN}Pomo Completed!")
+        else:
+            countdown_timer(pomo.get('focusTime'), pomo.get('sessionMessage'), constants.CONTINUE_TO_BREAK_END_OPTION)
     else:
         print(f"{ansi.RESET}\nTimer acknowledged. Exiting...\n")
 
-def countdown_timer(total_seconds: int, message:str="Focusing..."):
-    """Runs the countdown timer one time"""
+def countdown_timer(total_seconds: int, message: str = "Focusing...", end_option: int = 3):
+    """
+    Runs a countdown timer for the specified duration.
+
+    Args:
+        total_seconds (int): The total duration of the countdown in seconds.
+        message (str, optional): A custom message to display during the countdown.
+                                 Defaults to "Focusing...".
+        end_option (int, optional): Determine what happens after `countdown_end` function
+                            is called.
+                    - `0` -> Displays the main menu after the countdown timer is complete.
+                    - `1` -> Continues to the break after the session is complete.
+                    - `2` -> Continues to the next session after a break is complete.
+                    - `3` -> Exits the program after the countdown timer is complete.
+
+    Functionality:
+        - Iterates from `total_seconds` down to 0, updating the display every second.
+        - Clears the screen before updating the countdown display.
+        - Uses `generate_ascii_time(minutes, seconds)` to format the time.
+        - Calls `draw_border()` to render the countdown with the provided message.
+        - After the countdown reaches zero, clears the screen and calls `countdown_end(3)`,
+          which presumably handles the timer completion visuals or alerts.
+    """
     for remaining in range(total_seconds, -1, -1):
         minutes = remaining // 60
         seconds = remaining % 60
         os.system("clear" if os.name == "posix" else "cls")  # Clear screen
-        draw_border(generate_ascii_time(minutes, seconds), message)
+        if not pomo:
+            draw_border(generate_ascii_time(minutes, seconds), message)
+        else:
+            draw_border(generate_ascii_time(minutes, seconds), message, ansi.str_to_color(pomo['color']['border']), ansi.str_to_color(pomo['color']['time']))
         time.sleep(1)
 
     os.system("clear" if os.name == "posix" else "cls")  # Clear screen before flashing
-    countdown_end(3)
+    countdown_end(end_option)
 
-def pomodoro_timer(name: str, source=0):
+def pomodoro_timer(name: str, source: int = constants.MAIN_MENU_SOURCE):
     """
-    Runs a pomodoro timer based on the name provided.
+    Runs a Pomodoro timer based on the provided name.
 
-        args
-        name: str -> the name of the pomodoro
-        source: where this function was called.
-            0 -> From the Main Menu
-                Will redirect error to the main menu.
-            1 -> Directly from CLI
-                Will print error from CLI then stop program.
+    Args:
+        name (str): The name of the Pomodoro session to start.
+        source (int, optional): Indicates where this function was called from.
+            - `0` (default) -> Called from the Main Menu.
+                - Redirects errors back to the main menu.
+            - `1` -> Called directly from the CLI.
+                - Prints errors to the CLI and stops the program.
 
-    Reads the list of pomodoros in the settings.json file stored in the
-    $HOME/Documents/narlock/pomo/settings.json file. If the pomodoro
-    name is not found in the "pomos" list, this will return an error message.
-
-    If the pomodoro is found, then we will set the properties of the global
-    variables "sessions", "current_session", and "isBreak", then call the
-    countdown_timer function and begin the first session.
-
-    After sessions are over, we will check if the session has a break, if it does,
-    we will set isBreak to true and then call countdown_timer to begin the 
+    Functionality:
+        - Reads the list of Pomodoros from the settings file located at:
+          `$HOME/Documents/narlock/pomo/settings.json`.
+        - If the specified Pomodoro name is not found in the "pomos" list,
+          an error message is returned.
+        - If found, initializes the global variables:
+            - `sessions`
+            - `current_session`
+            - `isBreak`
+        - Calls `countdown_timer()` to begin the first Pomodoro session.
+        - After all work sessions are complete, checks if a break is required.
+          If so, sets `isBreak` to `True` and calls `countdown_timer()` to start the break.
     """
+    global pomo
+    global pomo_source
+    pomo = settings.get_pomo(name = name)
+    pomo_source = source
+
+    # Check if the pomo is not found
+    if pomo is None:
+        handle_pomo_not_found(name, pomo_source)
+        return
+
+    # Initialize pomodoro settings
+    global sessions
+    global current_session
+    global isBreak
+
+    sessions = pomo.get('sessionCount', 1)
+    current_session = 0
+    isBreak = False
+    
+    # Begin pomodoro
+    countdown_timer(pomo.get('focusTime'), pomo.get('sessionMessage'), constants.CONTINUE_TO_BREAK_END_OPTION)
+
+def handle_pomo_not_found(name: str, source: int):
+    """
+    Handles how the program will operate after a pomo has been requested that 
+    does not exist in the current settings.
+
+    """
+    if source == 0:
+        # Redirect to main menu
+        main.show_main_menu(message = constants.POMO_NOT_FOUND(name))
+    else:
+        # Terminate the program
+       print(constants.POMO_NOT_FOUND(name)) 
