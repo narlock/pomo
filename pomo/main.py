@@ -22,7 +22,7 @@ for char in 'POMO':
         POMO_ANSI[i] += ansi.ascii_letters[char][i] + "  "
 
 def show_help():
-    pass
+    print(constants.HELP)
 
 def show_main_menu(selection=constants.CHOOSE_SELECTION):
     os.system('clear')

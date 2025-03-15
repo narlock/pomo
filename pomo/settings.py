@@ -15,7 +15,8 @@ SETTINGS_PATH = Path.home() / "Documents" / "narlock" / "pomo" / "settings.json"
 DEFAULT_POMO = {
     "name": "Default",                                                      # The name of the custom pomo setting.
     "focusTime": 1500,                                                      # The amount of time in seconds a focus session will be.
-    "breakTime": 300,                                                       # The amount of time in seconds a break will be.
+    "shortBreak": True,                                                     # Indicates that regular breaks after sessions are enabled.
+    "shortBreakTime": 300,                                                       # The amount of time in seconds a break will be.
     "sessionCount": 1,                                                      # The number of sessions in the pomodoro.
     "longBreak": False,                                                     # Indicates that long break is enabled.
     "longBreakTime": 900,                                                   # The amount of time in seconds a long break will be.
@@ -60,7 +61,7 @@ INITIAL_SETTINGS = {
                     "totalNumberOfBreaks": 0,
                     "totalFocusTime": 0,
                     "totalBreakTime": 0,
-                    "dayFocus": {
+                    "day": {
                         1: {
                             "totalNumberOfSessions": 0,
                             "totalNumberOfBreaks": 0,
