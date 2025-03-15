@@ -1,3 +1,4 @@
+import main
 import ansi
 import time
 import os
@@ -6,7 +7,9 @@ import threading
 import subprocess
 import signal
 
-timer_settings = None
+sessions = 0
+current_session = 0
+isBreak = False
 
 def draw_border(content, message=None, color=ansi.RED):
     """Draws a box border around the ASCII time display, centered both horizontally and vertically."""
@@ -128,7 +131,7 @@ def wait_for_user_input(stop_event):
     if sound_process and sound_process.poll() is None:
         sound_process.terminate()
 
-def countdown_end():
+def countdown_end(option=0):
     """Plays an alarm with both flashing and sound, stopping when user presses ENTER."""
     sound_file = os.path.join("sfx", "DEFAULT_ALARM.wav")
 
@@ -151,24 +154,49 @@ def countdown_end():
         sound_process.terminate()
         sound_process.wait()
 
-    print("\nTimer acknowledged. Exiting...\n")
+    if option == 0:
+        main.show_main_menu()
+    elif option == 1:
+        # continue to next break
+        pass
+    elif option == 2:
+        # continue to next focus session
+        pass
+    else:
+        print(f"{ansi.RESET}\nTimer acknowledged. Exiting...\n")
 
-def previous_pomodoro(user_settings):
-    """
-    Begins the previous pomodoro.
-    """
-    # TODO
-
-    countdown_timer(user_settings['previousPomo']['focusTime'])
-
-def countdown_timer(total_seconds):
-    """Runs the countdown timer."""
+def countdown_timer(total_seconds: int, message:str="Focusing..."):
+    """Runs the countdown timer one time"""
     for remaining in range(total_seconds, -1, -1):
         minutes = remaining // 60
         seconds = remaining % 60
         os.system("clear" if os.name == "posix" else "cls")  # Clear screen
-        draw_border(generate_ascii_time(minutes, seconds), "Focusing...")
+        draw_border(generate_ascii_time(minutes, seconds), message)
         time.sleep(1)
 
     os.system("clear" if os.name == "posix" else "cls")  # Clear screen before flashing
-    countdown_end()
+    countdown_end(3)
+
+def pomodoro_timer(name: str, source=0):
+    """
+    Runs a pomodoro timer based on the name provided.
+
+        args
+        name: str -> the name of the pomodoro
+        source: where this function was called.
+            0 -> From the Main Menu
+                Will redirect error to the main menu.
+            1 -> Directly from CLI
+                Will print error from CLI then stop program.
+
+    Reads the list of pomodoros in the settings.json file stored in the
+    $HOME/Documents/narlock/pomo/settings.json file. If the pomodoro
+    name is not found in the "pomos" list, this will return an error message.
+
+    If the pomodoro is found, then we will set the properties of the global
+    variables "sessions", "current_session", and "isBreak", then call the
+    countdown_timer function and begin the first session.
+
+    After sessions are over, we will check if the session has a break, if it does,
+    we will set isBreak to true and then call countdown_timer to begin the 
+    """

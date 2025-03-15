@@ -59,6 +59,27 @@ def main():
         show_main_menu()
     elif args[0] == constants.HELP_CMD:
         show_help()
+    elif args[0] == constants.POMO_CREATE_CMD:
+        # Enter Creation Menu
+        print('Entering creation menu')
+        pass
+    elif args[0] == constants.SETTINGS_CMD:
+        # Enter Settings Menu
+        print('Entering settings menu')
+        pass
+    elif len(args) == 1 and args[0] == constants.POMO_CMD:
+        # Start Pomo with previous setting.
+        print('Entering pomo with previous setting')
+        pass
+    elif len(args) == 2 and args[0] == constants.POMO_CMD:
+        # Start pomo with saved setting.
+        print(f'Entering pomo with saved setting {args[1]}')
+        pass
+    elif len(args) == 1 and int(args[0]):
+        # Start a pomodoro where args[0] is amount of time in minutes.
+        minutes = int(args[0])
+        print(f'Starting countdown timer with {minutes} minutes')
+        countdown_timer.countdown_timer(minutes * 60)
     else:
         show_main_menu()
 

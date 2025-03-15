@@ -39,7 +39,7 @@ DEFAULT_POMO = {
 
 INITIAL_SETTINGS = {
     "title": "POMO",
-    "previousPomo": DEFAULT_POMO,
+    "previousPomoName": "Default",
     "pomos": [
         DEFAULT_POMO
     ],
