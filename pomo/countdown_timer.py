@@ -133,25 +133,25 @@ def flashing_alert():
     flash_thread = threading.Thread(target=flash, daemon=True)
     flash_thread.start()
 
-def play_sound_loop(sound_path, volume):
-    """Continuously plays the alarm sound until the user presses ENTER."""
-    global sound_process
+# def play_sound_loop(sound_path, volume):
+#     """Continuously plays the alarm sound until the user presses ENTER."""
+#     global sound_process
     
-    while not stop_event.is_set():
-        try:
-            if sys.platform == "win32":
-                sound_process = subprocess.Popen([
-                    "ffmpeg", "-i", sound_path, "-filter:a", f"volume={volume}", "-f", "wav", "pipe:1"
-                ], stdout=subprocess.PIPE)
-                subprocess.Popen(["powershell", "-c", "(New-Object Media.SoundPlayer).PlaySync()"], stdin=sound_process.stdout)
-            elif sys.platform == "darwin":  # macOS
-                sound_process = subprocess.Popen(["afplay", "-v", volume, sound_path])
-            elif sys.platform == "linux":
-                sound_process = subprocess.Popen(["play", sound_path, "repeat", "999", "vol", volume])  # Loop infinitely
+#     while not stop_event.is_set():
+#         try:
+#             if sys.platform == "win32":
+#                 sound_process = subprocess.Popen([
+#                     "ffmpeg", "-i", sound_path, "-filter:a", f"volume={volume}", "-f", "wav", "pipe:1"
+#                 ], stdout=subprocess.PIPE)
+#                 subprocess.Popen(["powershell", "-c", "(New-Object Media.SoundPlayer).PlaySync()"], stdin=sound_process.stdout)
+#             elif sys.platform == "darwin":  # macOS
+#                 sound_process = subprocess.Popen(["afplay", "-v", volume, sound_path])
+#             elif sys.platform == "linux":
+#                 sound_process = subprocess.Popen(["play", sound_path, "repeat", "999", "vol", volume])  # Loop infinitely
 
-        except Exception as e:
-            print(f"Error playing sound: {e}")
-            break
+#         except Exception as e:
+#             print(f"Error playing sound: {e}")
+#             break
 
 def wait_for_user_input(stop_event):
     """Waits for the user to press ENTER, then stops the flashing and sound."""
