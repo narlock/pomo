@@ -173,3 +173,5 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 /pomo/test
+pomo/sfx/test.py
+pomo/sfx/test2.py

@@ -8,6 +8,9 @@ import subprocess
 import signal
 import settings
 import constants
+import multiprocessing
+
+WAV_FILE = "DEFAULT_ALARM.wav"
 
 stop_event = threading.Event()  # Shared stop event for graceful shutdown
 sound_process = None  # To track sound subprocess
@@ -104,6 +107,39 @@ signal.signal(signal.SIGINT, handle_exit)   # Handle Ctrl+C
 signal.signal(signal.SIGHUP, handle_exit)   # Handle terminal close (Unix)
 signal.signal(signal.SIGTERM, handle_exit)  # Handle kill command
 
+def play_sound():
+    while True:
+        if sys.platform == "darwin":
+            subprocess.run(["afplay", WAV_FILE])  # macOS
+        else:
+            subprocess.run(["aplay", WAV_FILE])   # Linux
+
+def get_audio_pids():
+    """Finds the PIDs of running 'afplay' or 'aplay' processes."""
+    try:
+        if sys.platform == "darwin":
+            result = subprocess.run(["pgrep", "afplay"], capture_output=True, text=True)
+        else:
+            result = subprocess.run(["pgrep", "aplay"], capture_output=True, text=True)
+
+        pids = result.stdout.strip().split("\n")
+        return [pid for pid in pids if pid.isdigit()]
+    except Exception as e:
+        print(f"Error retrieving audio PIDs: {e}")
+        return []
+    
+def begin_sound_thread():
+    """
+    Begins the sound thread
+    """
+    process = multiprocessing.Process(target=play_sound, daemon=True)
+    process.start()
+
+def kill_sound_threads():
+    """
+    Kills all sound threads returned from get_audio_pids
+    """
+
 def flashing_alert():
     """Flashes the screen repeatedly showing 00:00 until the user presses Enter."""
     message = "Press ENTER to acknowledge..."
@@ -133,26 +169,6 @@ def flashing_alert():
     flash_thread = threading.Thread(target=flash, daemon=True)
     flash_thread.start()
 
-# def play_sound_loop(sound_path, volume):
-#     """Continuously plays the alarm sound until the user presses ENTER."""
-#     global sound_process
-    
-#     while not stop_event.is_set():
-#         try:
-#             if sys.platform == "win32":
-#                 sound_process = subprocess.Popen([
-#                     "ffmpeg", "-i", sound_path, "-filter:a", f"volume={volume}", "-f", "wav", "pipe:1"
-#                 ], stdout=subprocess.PIPE)
-#                 subprocess.Popen(["powershell", "-c", "(New-Object Media.SoundPlayer).PlaySync()"], stdin=sound_process.stdout)
-#             elif sys.platform == "darwin":  # macOS
-#                 sound_process = subprocess.Popen(["afplay", "-v", volume, sound_path])
-#             elif sys.platform == "linux":
-#                 sound_process = subprocess.Popen(["play", sound_path, "repeat", "999", "vol", volume])  # Loop infinitely
-
-#         except Exception as e:
-#             print(f"Error playing sound: {e}")
-#             break
-
 def wait_for_user_input(stop_event):
     """Waits for the user to press ENTER, then stops the flashing and sound."""
     input()
@@ -169,27 +185,13 @@ def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
     global isBreak
 
     stop_event.clear()
-    # TODO fix sound logic... May need reimplementation... Causes distortion with the threads.
-    # sound_file = os.path.join("sfx", "DEFAULT_ALARM.wav")
-
-    # if not os.path.exists(sound_file):
-    #     print("Error: Sound file not found!")
-    #     sys.exit(1)
 
     # Start flashing and playing sound in parallel
     flashing_alert()
-    # sound_thread = threading.Thread(target=play_sound_loop, args=(sound_file, "0.5"), daemon=True)
-    # sound_thread.start()
 
     # Wait for user input and stop everything
     input()
     stop_event.set()
-
-    # Ensure sound process is terminated
-    # global sound_process
-    # if sound_process and sound_process.poll() is None:
-    #     sound_process.terminate()
-    #     sound_process.wait()
 
     if option == constants.MAIN_MENU_END_OPTION:
         main.show_main_menu(message = "Timer ended!")
