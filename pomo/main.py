@@ -26,7 +26,7 @@ def show_help():
 
 def show_main_menu(selection: str = constants.CHOOSE_SELECTION, message: str = constants.get_version_info()):
     os.system('clear')
-    countdown_timer.draw_border(POMO_ANSI, message)
+    countdown_timer.draw_countdown_timer(POMO_ANSI, message)
     print(f"{ansi.RESET}{ansi.center_text(constants.MENU_CONTROLS)}")
     print(selection)
     
