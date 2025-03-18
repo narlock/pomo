@@ -7,6 +7,7 @@ import signal
 import settings
 import constants
 import multiprocessing
+import subprocess
 
 # Active Pomo Information
 pomo = None
@@ -102,6 +103,32 @@ def draw_countdown_timer_end():
         # Repeat every second
         time.sleep(1)
 
+def play_audio_end(file: str = "DEFAULT_ALARM.wav"):
+    """
+    Plays the audio after the countdown timer ends.
+    """
+    import os
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    audio_file = os.path.join(script_dir, "sfx", "DEFAULT_ALARM.wav")
+
+    # Continuously loop audio track
+    try:
+        while True:
+            if sys.platform == 'darwin':  # macOS
+                audio_process = subprocess.Popen(["afplay", audio_file], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            else:  # Linux
+                audio_process = subprocess.Popen(["aplay", audio_file], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            # Ensures the audio finishes before replaying
+            audio_process.wait()
+    except KeyboardInterrupt:
+        pass # Allows for graceful termination
+    finally:
+        try:
+            audio_process.terminate()
+        except:
+            pass # Process may already be dead
+
 # track child processes: flashing screen, playing audio, etc.
 child_processes = []
 
@@ -156,13 +183,25 @@ def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
     flashing_process.start()
     child_processes.append(flashing_process)
 
+    # Start Audio process
+    audio_multiprocess = multiprocessing.Process(target=play_audio_end, daemon=True)
+    audio_multiprocess.start()
+    child_processes.append(audio_multiprocess)
+
     # Wait for the user to hit ENTER before continuing...
     input()
 
     # Terminate the process
     flashing_process.terminate()
     flashing_process.join()
-    child_processes.remove(flashing_process)
+    audio_multiprocess.terminate()
+    audio_multiprocess.join()
+    if multiprocessing.current_process().name == "MainProcess":
+        for process in child_processes:
+            if process.is_alive():
+                print(f"Terminating child process: {process.pid}")
+                process.terminate()
+                process.join()
 
     if option == constants.MAIN_MENU_END_OPTION:
         # Go back to the main menu of the program
