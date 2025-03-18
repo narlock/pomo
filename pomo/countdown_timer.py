@@ -9,6 +9,7 @@ import signal
 import settings
 import constants
 import multiprocessing
+import sfx.play_audio
 
 WAV_FILE = "DEFAULT_ALARM.wav"
 
@@ -88,8 +89,7 @@ def handle_exit(signum, frame):
     # Terminate sound process if running
     global sound_process
     if sound_process and sound_process.poll() is None:
-        sound_process.terminate()
-        sound_process.wait()
+        os.kill(sound_process.pid, signal.SIGTERM)
 
     # Clear screen before exiting (optional)
     os.system("clear" if os.name == "posix" else "cls")
@@ -106,39 +106,6 @@ def handle_exit(signum, frame):
 signal.signal(signal.SIGINT, handle_exit)   # Handle Ctrl+C
 signal.signal(signal.SIGHUP, handle_exit)   # Handle terminal close (Unix)
 signal.signal(signal.SIGTERM, handle_exit)  # Handle kill command
-
-def play_sound():
-    while True:
-        if sys.platform == "darwin":
-            subprocess.run(["afplay", WAV_FILE])  # macOS
-        else:
-            subprocess.run(["aplay", WAV_FILE])   # Linux
-
-def get_audio_pids():
-    """Finds the PIDs of running 'afplay' or 'aplay' processes."""
-    try:
-        if sys.platform == "darwin":
-            result = subprocess.run(["pgrep", "afplay"], capture_output=True, text=True)
-        else:
-            result = subprocess.run(["pgrep", "aplay"], capture_output=True, text=True)
-
-        pids = result.stdout.strip().split("\n")
-        return [pid for pid in pids if pid.isdigit()]
-    except Exception as e:
-        print(f"Error retrieving audio PIDs: {e}")
-        return []
-    
-def begin_sound_thread():
-    """
-    Begins the sound thread
-    """
-    process = multiprocessing.Process(target=play_sound, daemon=True)
-    process.start()
-
-def kill_sound_threads():
-    """
-    Kills all sound threads returned from get_audio_pids
-    """
 
 def flashing_alert():
     """Flashes the screen repeatedly showing 00:00 until the user presses Enter."""
@@ -169,15 +136,6 @@ def flashing_alert():
     flash_thread = threading.Thread(target=flash, daemon=True)
     flash_thread.start()
 
-def wait_for_user_input(stop_event):
-    """Waits for the user to press ENTER, then stops the flashing and sound."""
-    input()
-    stop_event.set()
-
-    # Terminate the sound process if it's still running
-    if sound_process and sound_process.poll() is None:
-        sound_process.terminate()
-
 def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
     """Plays an alarm with both flashing and sound, stopping when user presses ENTER."""
     global isBreak
@@ -188,10 +146,14 @@ def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
 
     # Start flashing and playing sound in parallel
     flashing_alert()
+    sound_process = multiprocessing.Process(sfx.play_audio.play_sound(), daemon=True)
+    sound_process.start()
 
     # Wait for user input and stop everything
     input()
     stop_event.set()
+    sfx.play_audio.kill_processes()
+    os.kill(sound_process.pid, signal.SIGTERM)
 
     if option == constants.MAIN_MENU_END_OPTION:
         main.show_main_menu(message = "Timer ended!")
