@@ -323,7 +323,9 @@ def pomodoro_timer(name: str, source: int = constants.MAIN_MENU_SOURCE):
 
 def pomodoro_timer_global(total_seconds: int):
     """
-    
+    Starts a simple countdown timer that lasts only one session. This acts as
+    just a regular countdown timer that will terminate the program once the time
+    is up.
     """
     global pomo
     pomo = settings.make_countdown_pomo(total_seconds)

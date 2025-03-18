@@ -194,26 +194,26 @@ def get_list_of_pomo_names(user_settings = load_settings()):
 def make_countdown_pomo(focusTime: int, global_settings = load_settings()):
     countdown = global_settings.get('countdown')
     return {
-    "name": "OneTimePomo",
-    "focusTime": focusTime,
-    "shortBreak": False,
-    "shortBreakTime": 0,
-    "sessionCount": 1,
-    "longBreak": False,
-    "longBreakTime": 0,
-    "longBreakAfterSessions": [],
-    "autoStartNextSession": countdown['autoEndCountdown'],
-    "autoStartBreak": False,
-    "playAlarmSound": False,
-    "alarmSound": "Default",
-    "timerEndFlash": True,
-    "sessionMessage": "Session ${current_session} / ${total_sessions}",
-    "breakMessage": "Break ${current_session} / ${total_sessions}",
-    "pauseAllowed": False,
-    "adminMode": False,
-    "color": {
-        "border": countdown['color']['border'],
-        "time": countdown['color']['time'],
-        "subtext": countdown['color']['subtext']
-    },
-}
+        "name": "OneTimePomo",
+        "focusTime": focusTime,
+        "shortBreak": False,
+        "shortBreakTime": 0,
+        "sessionCount": 1,
+        "longBreak": False,
+        "longBreakTime": 0,
+        "longBreakAfterSessions": [],
+        "autoStartNextSession": countdown['autoEndCountdown'],
+        "autoStartBreak": False,
+        "playAlarmSound": False,
+        "alarmSound": "Default",
+        "timerEndFlash": True,
+        "sessionMessage": "Session ${current_session} / ${total_sessions}",
+        "breakMessage": "Break ${current_session} / ${total_sessions}",
+        "pauseAllowed": False,
+        "adminMode": False,
+        "color": {
+            "border": countdown['color']['border'],
+            "time": countdown['color']['time'],
+            "subtext": countdown['color']['subtext']
+        },
+    }
