@@ -84,7 +84,7 @@ def main():
         # Start a pomodoro where args[0] is amount of time in minutes.
         minutes = int(args[0])
         print(f'Starting countdown timer with {minutes} minutes')
-        countdown_timer.countdown_timer(minutes * 60)
+        countdown_timer.pomodoro_timer_global(minutes * 60)
     else:
         show_main_menu()
 

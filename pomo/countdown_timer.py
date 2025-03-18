@@ -237,8 +237,6 @@ def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
                 print(f"{ansi.GREEN}Pomo Completed!")
         else:
             countdown_timer(pomo.get('focusTime'), pomo.get('sessionMessage'), constants.CONTINUE_TO_BREAK_END_OPTION)
-    else:
-        print(f"{ansi.RESET}\nTimer acknowledged. Exiting...\n")
 
 def countdown_timer(total_seconds: int, message: str = "Focusing...", end_option: int = 3):
     """
@@ -322,6 +320,16 @@ def pomodoro_timer(name: str, source: int = constants.MAIN_MENU_SOURCE):
     
     # Begin pomodoro
     countdown_timer(pomo.get('focusTime'), pomo.get('sessionMessage'), constants.CONTINUE_TO_BREAK_END_OPTION)
+
+def pomodoro_timer_global(total_seconds: int):
+    """
+    
+    """
+    global pomo
+    pomo = settings.make_countdown_pomo(total_seconds)
+
+    # Begin one time pomodoro
+    countdown_timer(pomo.get('focusTime'), pomo.get('sessionMessage'), constants.TERMINATE_END_OPTION)
 
 def handle_pomo_not_found(name: str, source: int):
     """
