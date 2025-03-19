@@ -8,6 +8,7 @@ import settings
 import constants
 import multiprocessing
 import subprocess
+import termios
 
 # Active Pomo Information
 pomo = None
@@ -189,6 +190,7 @@ def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
     child_processes.append(audio_multiprocess)
 
     # Wait for the user to hit ENTER before continuing...
+    termios.tcflush(sys.stdin, termios.TCIFLUSH) # Flushes the input buffer
     input()
 
     # Terminate the process

@@ -207,7 +207,7 @@ def make_countdown_pomo(focusTime: int, global_settings = load_settings()):
         "playAlarmSound": False,
         "alarmSound": "Default",
         "timerEndFlash": True,
-        "sessionMessage": "Session ${current_session} / ${total_sessions}",
+        "sessionMessage": "Focusing...",
         "breakMessage": "Break ${current_session} / ${total_sessions}",
         "pauseAllowed": False,
         "adminMode": False,
