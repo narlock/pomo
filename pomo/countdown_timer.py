@@ -95,7 +95,7 @@ def draw_countdown_timer_end():
             draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.WHITE, ansi.str_to_color(pomo['color']['time']))
             flash_color = 1
         else:
-            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.RED, ansi.str_to_color(pomo['color']['time']))
+            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.str_to_color(pomo['color']['border']), ansi.str_to_color(pomo['color']['time']))
             flash_color = 0
 
         # Repeat every second

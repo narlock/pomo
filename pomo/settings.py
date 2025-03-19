@@ -28,8 +28,6 @@ DEFAULT_POMO = {
     "sessionMessage": "Session ${current_session} / ${total_sessions}",         # The subtext message during a focus session.
     "breakMessage": "Break ${current_session} / ${total_sessions}",             # The subtext message during a break.
     "longBreakMessage": "Long Break ${current_session} / ${total_sessions}",    # The subtext message during a long break
-    "pauseAllowed": False,                                                      # Allows the user to pause the timer during focus sessions and breaks.
-    "adminMode": False,                                                         # Allows the user to freely change components of the pomodoro while it is in progress.
     "color": {
         "border": "RED",                                                        # The color of the timer's border.
         "time": "YELLOW",                                                       # The color of the timer's text.
@@ -54,8 +52,6 @@ TEST_POMO = {
     "sessionMessage": "Session ${current_session} / ${total_sessions}",         # The subtext message during a focus session.
     "breakMessage": "Break ${current_session} / ${total_sessions}",             # The subtext message during a break.
     "longBreakMessage": "Long Break ${current_session} / ${total_sessions}",    # The subtext message during a long break
-    "pauseAllowed": False,                                                      # Allows the user to pause the timer during focus sessions and breaks.
-    "adminMode": False,                                                         # Allows the user to freely change components of the pomodoro while it is in progress.
     "color": {
         "border": "BLUE",                                                       # The color of the timer's border.
         "time": "GREEN",                                                        # The color of the timer's text.
@@ -212,8 +208,6 @@ def make_countdown_pomo(focusTime: int, global_settings = load_settings()):
         "sessionMessage": "Focusing...",
         "breakMessage": "Break ${current_session} / ${total_sessions}",
         "longBreakMessage": "Long Break ${current_session} / ${total_sessions}",
-        "pauseAllowed": False,
-        "adminMode": False,
         "color": {
             "border": countdown['color']['border'],
             "time": countdown['color']['time'],
