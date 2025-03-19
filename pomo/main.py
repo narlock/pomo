@@ -12,6 +12,8 @@ import sys
 import os
 import pomo_key
 import settings
+import termios
+import tty
 
 user_settings = None
 
@@ -44,6 +46,9 @@ def show_main_menu(selection: str = constants.CHOOSE_SELECTION, message: str = c
 
         previous_pomo = user_settings['previousPomoName']
         countdown_timer.pomodoro_timer(name = previous_pomo, source = constants.MAIN_MENU_SOURCE)
+    elif key == constants.KEY_2:
+        # Display a list of saved settings, then start pomo
+        show_saved_pomos()
     elif key == constants.KEY_5:
         # Debug
         message = user_settings.get('pomos')[0].get('sessionMessage')
@@ -51,6 +56,37 @@ def show_main_menu(selection: str = constants.CHOOSE_SELECTION, message: str = c
         print(message)
     else:
         show_main_menu(constants.INVALID_SELECTION)
+
+def show_saved_pomos():
+    selected_index = 0
+
+    while True:
+        os.system('clear')
+        print(f"{ansi.ORANGE}{ansi.BOLD}Saved Pomos:{ansi.RESET}\n")
+        for index, pomo in enumerate(user_settings['pomos']):
+            if index == selected_index:
+                print(f"{ansi.GREEN}{ansi.BOLD}→ [{index}] {get_pomo_info(pomo)}{ansi.RESET}")
+            else:
+                print(f"[{index}] {get_pomo_info(pomo)}")
+        print()
+
+        key = pomo_key.get_keypress()
+
+        if key == constants.KEY_UP:
+            selected_index = (selected_index - 1) % len(user_settings['pomos'])
+        elif key == constants.KEY_DOWN:
+            selected_index = (selected_index + 1) % len(user_settings['pomos'])
+        elif key in constants.KEY_ENTER:
+            countdown_timer.pomodoro_timer(user_settings['pomos'][selected_index]['name'])
+            return
+        elif key == constants.EXIT_CMD:
+            os.system('clear')
+            show_main_menu()
+            return
+
+
+def get_pomo_info(pomo):
+    return f"{pomo['name']} — {pomo['sessionCount']} sessions, {int(int(pomo['focusTime']) / 60)}/{int(int(pomo['shortBreakTime']) / 60)}, long: {pomo['longBreakAfterSessions']}"
 
 def main():
     args = sys.argv[1:]

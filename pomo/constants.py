@@ -44,6 +44,10 @@ KEY_7 = "7"
 KEY_8 = "8"
 KEY_9 = "9"
 KEY_0 = "0"
+KEY_UP = "\x1b[A"
+KEY_DOWN = "\x1b[B"
+KEY_ENTER = ('\r', '\n')
+EXIT_CMD = "\x03"  # Ctrl+C
 
 # Storage information
 STORAGE_DIR = os.path.expanduser("~/Documents/narlock/pomo")
