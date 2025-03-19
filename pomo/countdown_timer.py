@@ -83,10 +83,7 @@ def draw_countdown_timer_end():
     Indicates to the user that the timer is ended.
     """
     global isBreak
-    if isBreak:
-        message = "Break Over!"
-    else:
-        message = "Session Over!"
+    message = "Break Over!" if isBreak else "Session Over!"
 
     flash_color = 0
 
@@ -179,31 +176,46 @@ def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
     global isBreak
     global current_session
 
-    # Draw flashing animation
-    flashing_process = multiprocessing.Process(target=draw_countdown_timer_end, daemon=True)
-    flashing_process.start()
-    child_processes.append(flashing_process)
+    # Sessions will automatically start after the break if enabled
+    dontAutoStartNextSession = not (pomo['autoStartNextSession'] and option == constants.CONTINUE_TO_NEXT_SESSION_END_OPTION)
+    dontAutoStartBreak = not (pomo['autoStartBreak'] and option == constants.CONTINUE_TO_BREAK_END_OPTION)
 
-    # Start Audio process
-    audio_multiprocess = multiprocessing.Process(target=play_audio_end, daemon=True)
-    audio_multiprocess.start()
-    child_processes.append(audio_multiprocess)
+    if dontAutoStartNextSession == True and dontAutoStartBreak == True:
+        # Draw flashing animation
+        if pomo['timerEndFlash'] == True:
+            flashing_process = multiprocessing.Process(target=draw_countdown_timer_end, daemon=True)
+            flashing_process.start()
+            child_processes.append(flashing_process)
+        else:
+            message = "Break Over!" if isBreak else "Session Over!"
+            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.str_to_color(pomo['color']['border']), ansi.str_to_color(pomo['color']['time']))
 
-    # Wait for the user to hit ENTER before continuing...
-    termios.tcflush(sys.stdin, termios.TCIFLUSH) # Flushes the input buffer
-    input()
+        # Start Audio process
+        if pomo['playAlarmSound'] == True:
+            audio_multiprocess = multiprocessing.Process(target=play_audio_end, daemon=True)
+            audio_multiprocess.start()
+            child_processes.append(audio_multiprocess)
 
-    # Terminate the process
-    flashing_process.terminate()
-    flashing_process.join()
-    audio_multiprocess.terminate()
-    audio_multiprocess.join()
-    if multiprocessing.current_process().name == "MainProcess":
-        for process in child_processes:
-            if process.is_alive():
-                print(f"Terminating child process: {process.pid}")
-                process.terminate()
-                process.join()
+        # Wait for the user to hit ENTER before continuing...
+        termios.tcflush(sys.stdin, termios.TCIFLUSH) # Flushes the input buffer
+        input()
+
+        # Terminate the process
+        if pomo['timerEndFlash'] == True:
+            flashing_process.terminate()
+            flashing_process.join()
+
+        if pomo['playAlarmSound'] == True:
+            audio_multiprocess.terminate()
+            audio_multiprocess.join()
+
+        # Ensure child processes are terminated
+        if multiprocessing.current_process().name == "MainProcess":
+            for process in child_processes:
+                if process.is_alive():
+                    print(f"Terminating child process: {process.pid}")
+                    process.terminate()
+                    process.join()
 
     if option == constants.MAIN_MENU_END_OPTION:
         # Go back to the main menu of the program
@@ -212,18 +224,30 @@ def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
         # Continue to next break       
         isBreak = True
 
-        # TODO if the current session is the final session, end the pomo.
+        # If the current session is the final session, end the pomo.
         if current_session + 1 == sessions:
             # End the pomo
             if pomo_source and pomo_source == constants.MAIN_MENU_SOURCE:
                 # TODO add more verbose pomo complete message... including total focus time?
+                # TODO add focus time
                 main.show_main_menu(constants.CHOOSE_SELECTION, f'{ansi.GREEN}{ansi.BOLD}Pomo Completed!')
             else:
+                # TODO add focus time
                 os.system('clear')
                 print(f"{ansi.GREEN}Pomo Completed!")
         else:
-            # TODO determine that if the current_session is a long break, use long break for next countdown timer call
-            countdown_timer(pomo.get('shortBreakTime'), pomo.get('breakMessage'), constants.CONTINUE_TO_NEXT_SESSION_END_OPTION)
+            if pomo['longBreak'] and (current_session + 1) in pomo['longBreakAfterSessions']:
+                # Enter a long break
+                # TODO add focus time
+                countdown_timer(pomo.get('longBreakTime'), pomo.get('longBreakMessage'), constants.CONTINUE_TO_NEXT_SESSION_END_OPTION)
+            elif pomo['shortBreak']:
+                # TODO determine that if the current_session is a long break, use long break for next countdown timer call
+                countdown_timer(pomo.get('shortBreakTime'), pomo.get('breakMessage'), constants.CONTINUE_TO_NEXT_SESSION_END_OPTION)
+            else:
+                # Immediately go to the next session
+                isBreak = False
+                current_session = current_session + 1
+                countdown_timer(pomo.get('focusTime'), pomo.get('sessionMessage'), constants.CONTINUE_TO_BREAK_END_OPTION)
     elif pomo and option == constants.CONTINUE_TO_NEXT_SESSION_END_OPTION:
         # continue to next focus session
         isBreak = False
