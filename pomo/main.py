@@ -76,6 +76,13 @@ def show_saved_pomos():
             selected_index = (selected_index - 1) % len(user_settings['pomos'])
         elif key == constants.KEY_DOWN:
             selected_index = (selected_index + 1) % len(user_settings['pomos'])
+        elif key == constants.KEY_DELETE:
+            confirm = input(f"{ansi.YELLOW}{ansi.BOLD}Delete pomo \"{user_settings['pomos'][selected_index]['name']}\"? (y/N) ")
+            if confirm == 'y' or confirm == 'Y':
+                # Delete the pomo from the list
+                del user_settings['pomos'][selected_index]
+                settings.update_settings(user_settings)
+                pass
         elif key in constants.KEY_ENTER:
             countdown_timer.pomodoro_timer(user_settings['pomos'][selected_index]['name'])
             return
