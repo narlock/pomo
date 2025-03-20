@@ -74,6 +74,10 @@ INITIAL_SETTINGS = {
     ],
     "countdown": {                                                          # The setting used for instant countdown timer.
         "autoEndCountdown": False,                                          # Ends the program immediately aftee the countdown timer is completed. (No ACK)
+        "timerEndFlash": True,
+        "playAlarmSound": True,
+        "alarmSound": "Default",
+        "message": "Focusing...",
         "color": {
             "border": "RED",
             "time": "YELLOW",
@@ -202,10 +206,10 @@ def make_countdown_pomo(focusTime: int, global_settings = load_settings()):
         "longBreakAfterSessions": [],
         "autoStartNextSession": countdown['autoEndCountdown'],
         "autoStartBreak": False,
-        "playAlarmSound": False,
+        "playAlarmSound": countdown['playAlarmSound'],
         "alarmSound": "Default",
-        "timerEndFlash": True,
-        "sessionMessage": "Focusing...",
+        "timerEndFlash": countdown['timerEndFlash'],
+        "sessionMessage": countdown['message'],
         "breakMessage": "Break ${current_session} / ${total_sessions}",
         "longBreakMessage": "Long Break ${current_session} / ${total_sessions}",
         "color": {
