@@ -28,11 +28,9 @@ DEFAULT_POMO = {
     "sessionMessage": "Session ${current_session} / ${total_sessions}",         # The subtext message during a focus session.
     "breakMessage": "Break ${current_session} / ${total_sessions}",             # The subtext message during a break.
     "longBreakMessage": "Long Break ${current_session} / ${total_sessions}",    # The subtext message during a long break
-    "color": {
-        "border": "RED",                                                        # The color of the timer's border.
-        "time": "YELLOW",                                                       # The color of the timer's text.
-        "subtext": "BLUE"                                                       # The color of the subtext displayed below the timer.
-    },
+    "borderColor": "RED",
+    "timeColor": "YELLOW",
+    "subtextColor": "BLUE"
 }
 
 TEST_POMO = {
@@ -52,11 +50,9 @@ TEST_POMO = {
     "sessionMessage": "Session ${current_session} / ${total_sessions}",         # The subtext message during a focus session.
     "breakMessage": "Break ${current_session} / ${total_sessions}",             # The subtext message during a break.
     "longBreakMessage": "Long Break ${current_session} / ${total_sessions}",    # The subtext message during a long break
-    "color": {
-        "border": "BLUE",                                                       # The color of the timer's border.
-        "time": "GREEN",                                                        # The color of the timer's text.
-        "subtext": "YELLOW"                                                     # The color of the subtext displayed below the timer.
-    }, 
+    "borderColor": "RED",
+    "timeColor": "YELLOW",
+    "subtextColor": "BLUE"
 }
 
 INITIAL_SETTINGS = {
@@ -78,11 +74,9 @@ INITIAL_SETTINGS = {
         "playAlarmSound": True,
         "alarmSound": "Default",
         "message": "Focusing...",
-        "color": {
-            "border": "RED",
-            "time": "YELLOW",
-            "subtext": "BLUE"
-        }
+        "borderColor": "RED",
+        "timeColor": "YELLOW",
+        "subtextColor": "BLUE"
     },
     "currentFocusStreak": 0,
     "longestFocusStreak": 0,
@@ -212,11 +206,9 @@ def make_countdown_pomo(focusTime: int, global_settings = load_settings()):
         "sessionMessage": countdown['message'],
         "breakMessage": "Break ${current_session} / ${total_sessions}",
         "longBreakMessage": "Long Break ${current_session} / ${total_sessions}",
-        "color": {
-            "border": countdown['color']['border'],
-            "time": countdown['color']['time'],
-            "subtext": countdown['color']['subtext']
-        },
+        "borderColor": countdown['borderColor'],
+        "timeColor": countdown['timeColor'],
+        "subtextColor": countdown['subtextColor']
     }
 
 def set_previous_pomo(name: str, global_settings = load_settings()):

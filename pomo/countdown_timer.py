@@ -92,10 +92,10 @@ def draw_countdown_timer_end():
         
         # Change flash color
         if flash_color == 0:
-            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.WHITE, ansi.str_to_color(pomo['color']['time']))
+            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.WHITE, ansi.str_to_color(pomo['timeColor']))
             flash_color = 1
         else:
-            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.str_to_color(pomo['color']['border']), ansi.str_to_color(pomo['color']['time']))
+            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.str_to_color(pomo['borderColor']), ansi.str_to_color(pomo['timeColor']))
             flash_color = 0
 
         # Repeat every second
@@ -188,7 +188,7 @@ def countdown_end(option: int = constants.MAIN_MENU_END_OPTION):
             child_processes.append(flashing_process)
         else:
             message = "Break Over!" if isBreak else "Session Over!"
-            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.str_to_color(pomo['color']['border']), ansi.str_to_color(pomo['color']['time']))
+            draw_countdown_timer(generate_ascii_time(0, 0), message, ansi.str_to_color(pomo['borderColor']), ansi.str_to_color(pomo['timeColor']))
 
         # Start Audio process
         if pomo['playAlarmSound'] == True:
@@ -294,7 +294,7 @@ def countdown_timer(total_seconds: int, message: str = "Focusing...", end_option
         if not pomo:
             draw_countdown_timer(generate_ascii_time(minutes, seconds), message)
         else:
-            draw_countdown_timer(generate_ascii_time(minutes, seconds), message, ansi.str_to_color(pomo['color']['border']), ansi.str_to_color(pomo['color']['time']))
+            draw_countdown_timer(generate_ascii_time(minutes, seconds), message, ansi.str_to_color(pomo['borderColor']), ansi.str_to_color(pomo['timeColor']))
         time.sleep(1)
 
     os.system("clear" if os.name == "posix" else "cls")  # Clear screen before flashing

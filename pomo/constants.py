@@ -47,6 +47,7 @@ KEY_0 = "0"
 KEY_UP = "\x1b[A"
 KEY_DOWN = "\x1b[B"
 KEY_ENTER = ('\r', '\n')
+KEY_BACK = ('\x7f', '\x08')
 EXIT_CMD = "\x03"  # Ctrl+C
 KEY_DELETE = "d"
 
@@ -66,6 +67,25 @@ MAIN_MENU_END_OPTION = 0
 CONTINUE_TO_BREAK_END_OPTION = 1
 CONTINUE_TO_NEXT_SESSION_END_OPTION = 2
 TERMINATE_END_OPTION = 3
+
+# Pomo options
+pomo_options = ['name', 'focusTime', 'shortBreak', 'shortBreakTime', 'sessionCount',
+                'longBreak', 'longBreakTime', 'longBreakAfterSessions', 'autoStartNextSession',
+                'autoStartBreak', 'playAlarmSound', 'alarmSound', 'timerEndFlash', 'sessionMessage',
+                'breakMessage', 'longBreakMessage', 'borderColor', 'timeColor', 'subtextColor']
+
+pomo_type_options = ['str', 'int', 'bool', 'int', 'int',
+                     'bool', 'int', 'list', 'bool', 'bool',
+                     'bool', 'str', 'bool', 'str', 'str', 'str',
+                     'str', 'str', 'str']
+
+def get_pomo_option(index, pomo):
+    return pomo[pomo_options[index]]
+    
+def get_pomo_key(index):
+    return pomo_options[index]
+
+pomo_str_regex = r'^[A-Za-z0-9\s\-\_\.\$\{\}\!\@\#\%\^\&\*\(\)]+$'
 
 # Helper functions
 CURRENT_SESSION_PLACEHOLDER = 'current_session'
