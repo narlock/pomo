@@ -10,7 +10,7 @@ def get_version_info(subtext_color_str: str = 'BLUE'):
 MENU_CONTROLS = f"""
 1. Start pomo with previous setting.
 2. Start pomo with saved setting.   
-3. Start new pomo with new setting. 
+3. Create new pomo.                 
 4. Enter settings.                  
 CTRL + C: Quit Pomo                 
 """
@@ -46,6 +46,8 @@ KEY_9 = "9"
 KEY_0 = "0"
 KEY_UP = "\x1b[A"
 KEY_DOWN = "\x1b[B"
+KEY_LEFT = "\x1b[D"
+KEY_RIGHT = "\x1b[C"
 KEY_ENTER = ('\r', '\n')
 KEY_BACK = ('\x7f', '\x08')
 EXIT_CMD = "\x03"  # Ctrl+C
@@ -75,7 +77,7 @@ pomo_options = ['name', 'focusTime', 'shortBreak', 'shortBreakTime', 'sessionCou
                 'breakMessage', 'longBreakMessage', 'borderColor', 'timeColor', 'subtextColor']
 
 pomo_type_options = ['str', 'int', 'bool', 'int', 'int',
-                     'bool', 'int', 'list', 'bool', 'bool',
+                     'bool', 'int', 'int-list', 'bool', 'bool',
                      'bool', 'str', 'bool', 'str', 'str', 'str',
                      'str', 'str', 'str']
 
@@ -85,7 +87,14 @@ def get_pomo_option(index, pomo):
 def get_pomo_key(index):
     return pomo_options[index]
 
-pomo_str_regex = r'^[A-Za-z0-9\s\-\_\.\$\{\}\!\@\#\%\^\&\*\(\)]+$'
+POMO_STR_REGEX = r'^[A-Za-z0-9\s\-\_\.\$\{\}\!\@\#\%\^\&\*\(\)]+$'
+POMO_INT_REGEX = r'^\d+$'
+
+def get_comma_sep_string(list_of_int):
+    return ', '.join(str(i) for i in list_of_int)
+
+def parse_int_list(s):
+    return [int(x.strip()) for x in s.split(',') if x.strip().isdigit()]
 
 # Helper functions
 CURRENT_SESSION_PLACEHOLDER = 'current_session'

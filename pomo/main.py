@@ -13,6 +13,7 @@ import os
 import pomo_key
 import settings
 import re
+import time
 
 user_settings = None
 
@@ -26,6 +27,9 @@ def show_help():
     print(constants.HELP)
 
 def show_main_menu(selection: str = constants.CHOOSE_SELECTION, message: str = constants.get_version_info()):
+    global user_settings
+    user_settings = settings.load_settings()
+    
     os.system('clear')
     countdown_timer.draw_countdown_timer(POMO_ANSI, message)
     print(f"{ansi.RESET}{ansi.center_text(constants.MENU_CONTROLS)}")
@@ -63,40 +67,47 @@ def show_saved_pomos():
 
     while True:
         os.system('clear')
-        print(f"{ansi.ORANGE}{ansi.BOLD}Saved Pomos:{ansi.RESET}\n")
-        for index, pomo in enumerate(user_settings['pomos']):
-            if index == selected_index:
-                print(f"{ansi.BRIGHT_GREEN}{ansi.BOLD}→ [{index}] {ansi.RESET}{get_pomo_info(pomo)}{ansi.RESET}")
-            else:
-                print(f"{ansi.GREEN}[{index}] {ansi.RESET}{get_pomo_info(pomo)}")
-        print()
+        if len(user_settings['pomos']) > 1:
+            print(f"{ansi.ORANGE}{ansi.BOLD}Saved Pomos:{ansi.RESET}\n")
+            for index, pomo in enumerate(user_settings['pomos']):
+                if index == selected_index:
+                    print(f"{ansi.BRIGHT_GREEN}{ansi.BOLD}→ [{index}] {ansi.RESET}{get_pomo_info(pomo)}{ansi.RESET}")
+                else:
+                    print(f"{ansi.GREEN}[{index}] {ansi.RESET}{get_pomo_info(pomo)}")
+            print()
 
-        key = pomo_key.get_keypress()
+            key = pomo_key.get_keypress()
 
-        if key == constants.KEY_UP:
-            selected_index = (selected_index - 1) % len(user_settings['pomos'])
-        elif key == constants.KEY_DOWN:
-            selected_index = (selected_index + 1) % len(user_settings['pomos'])
-        elif key == constants.KEY_DELETE:
-            confirm = input(f"{ansi.YELLOW}{ansi.BOLD}Delete pomo \"{user_settings['pomos'][selected_index]['name']}\"? (y/N) ")
-            if confirm == 'y' or confirm == 'Y':
-                # Delete the pomo from the list
-                del user_settings['pomos'][selected_index]
-                settings.update_settings(user_settings)
-                pass
-        elif key in constants.KEY_ENTER:
-            pomo_name = user_settings['pomos'][selected_index]['name']
-            countdown_timer.pomodoro_timer(pomo_name)
-            return
-        elif key == constants.EXIT_CMD:
-            os.system('clear')
+            if key == constants.KEY_UP:
+                selected_index = (selected_index - 1) % len(user_settings['pomos'])
+            elif key == constants.KEY_DOWN:
+                selected_index = (selected_index + 1) % len(user_settings['pomos'])
+            elif key == constants.KEY_DELETE:
+                confirm = input(f"{ansi.YELLOW}{ansi.BOLD}Delete pomo \"{user_settings['pomos'][selected_index]['name']}\"? (y/N) ")
+                if confirm == 'y' or confirm == 'Y':
+                    # Delete the pomo from the list
+                    del user_settings['pomos'][selected_index]
+                    settings.update_settings(user_settings)
+                    selected_index = 0
+            elif key in constants.KEY_ENTER:
+                pomo_name = user_settings['pomos'][selected_index]['name']
+                countdown_timer.pomodoro_timer(user_settings=user_settings, name=pomo_name)
+                return
+            elif key == constants.EXIT_CMD:
+                os.system('clear')
+                show_main_menu()
+                return
+        else:
+            print(f"{ansi.RED}{ansi.BOLD}No Saved Pomos.{ansi.RESET}\n")
+            key = pomo_key.get_keypress()
             show_main_menu()
-            return
         
 def show_pomo_create_menu(pomo = None):
+    input_text = f"{ansi.YELLOW}Input:"
     selected_index = 0
     if pomo is None:
         pomo = settings.DEFAULT_POMO
+        pomo['name'] = ''
 
     while True:
         os.system('clear')
@@ -109,13 +120,11 @@ def show_pomo_create_menu(pomo = None):
         
         # Set option edit interface
         option_type = constants.pomo_type_options[selected_index]
-        if option_type is not 'list':
-            print(f"\n{ansi.YELLOW}Input ({option_type}):{ansi.RESET} {constants.get_pomo_option(selected_index, pomo)}", end="")
+        if option_type != 'list':
+            print(f"\n{input_text}{ansi.RESET} {constants.get_pomo_option(selected_index, pomo)}", end="")
         else:
-            list_content = ''
-            for list_int in constants.get_pomo_option(selected_index, pomo):
-                list_content += list_int + ","
-            print(f"\n{ansi.YELLOW}Input ({option_type}):{ansi.RESET} {list_content}", end="")
+            list_content = constants.get_comma_sep_string(constants.get_pomo_option(selected_index, pomo))
+            print(f"\n{input_text}{ansi.RESET} {list_content}", end="")
 
         key = pomo_key.get_keypress()
 
@@ -123,32 +132,86 @@ def show_pomo_create_menu(pomo = None):
             show_main_menu()
             return
         elif key == constants.KEY_UP:
+            input_text = f"{ansi.YELLOW}Input ({option_type}):"
             selected_index = (selected_index - 1) % len(constants.pomo_options)
+            continue
         elif key == constants.KEY_DOWN:
+            input_text = f"{ansi.YELLOW}Input ({option_type}):"
             selected_index = (selected_index + 1) % len(constants.pomo_options)
-        elif key == constants.KEY_ENTER:
-            # Save the pomo, ensure one with the same name does not exist
-            pass
+            continue
+        elif key in constants.KEY_ENTER:
+            # Validation
+            if ''.join(pomo['name'].split()) == '':
+                input_text = f"{ansi.RED}Name cannot be empty...{ansi.RESET}"
+                continue
+            elif pomo['name'] in [name['name'] for name in user_settings['pomos']]:
+                input_text = f"{ansi.RED}Pomo with name \"{pomo['name']}\" already exists... Try a different name...{ansi.RESET}"
+                continue
+            elif pomo['borderColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid borderColor...{ansi.RESET}"
+                continue
+            elif pomo['timeColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid timeColor...{ansi.RESET}"
+                continue
+            elif pomo['subtextColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid subtextColor...{ansi.RESET}"
+                continue
+            elif pomo['alarmSound'] != 'Default':
+                input_text = f"{ansi.RED}\"Default\" is the only supported alarmSound...{ansi.RESET}"
+                continue
+
+            # Save and start
+            user_settings['pomos'].append(pomo)
+            settings.update_settings(user_settings)
+            show_main_menu()
+            return
+
+        key_name = constants.pomo_options[selected_index]
+        input_text = f"{ansi.YELLOW}Input ({option_type}):"
 
         # Determine key behavior based on option type
         if option_type == 'str':
-            key_name = constants.pomo_options[selected_index]
-
             # Create string edit interface
             option_string = constants.get_pomo_option(selected_index, pomo)
             if key in constants.KEY_BACK:
                 # Delete character from string if possible
                 option_string = option_string[:-1]
                 pomo[key_name] = option_string
-
+            elif re.fullmatch(constants.POMO_STR_REGEX, key):
+                # Add character from string
+                option_string += key
+                pomo[key_name] = option_string
         elif option_type == 'int':
             # Create int edit interface
-            pass
+            option_string = str(constants.get_pomo_option(selected_index, pomo))
+            if key in constants.KEY_BACK:
+                # Delete character from string if possible
+                option_string = option_string[:-1]
+                pomo[key_name] = option_string
+            elif re.fullmatch(constants.POMO_INT_REGEX, key):
+                # Add character from string
+                option_string += key
+                pomo[key_name] = int(option_string)
         elif option_type == 'bool':
+            option_bool = constants.get_pomo_option(selected_index, pomo)
             # Create bool edit interface
-            pass
-        elif option_type == 'list':
-            pass
+            if key == constants.KEY_LEFT or key == constants.KEY_RIGHT:
+                pomo[key_name] = not option_bool
+        elif option_type == 'int-list':
+            # Allow for integers that are command separated
+            option_string = constants.get_comma_sep_string(constants.get_pomo_option(selected_index, pomo))
+
+            if key in constants.KEY_BACK:
+                # handle back
+                option_string = option_string[:-1]
+                pomo[key_name] = constants.parse_int_list(option_string)
+            elif key == ',':
+                option_string += f", 0"
+                pomo[key_name] = constants.parse_int_list(option_string)
+            elif re.fullmatch(constants.POMO_INT_REGEX, key):
+                # Add character from string
+                option_string += key
+                pomo[key_name] = constants.parse_int_list(option_string)
 
 def get_pomo_info(pomo):
     return f"{pomo['name']} — {pomo['sessionCount']} sessions, {int(int(pomo['focusTime']) / 60)}/{int(int(pomo['shortBreakTime']) / 60)}, long: {pomo['longBreakAfterSessions']}"

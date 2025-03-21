@@ -73,7 +73,7 @@ def draw_countdown_timer(ascii_lines, message: str = None, border_color = ansi.R
             message = constants.replace_placeholder(message, constants.CURRENT_SESSION_PLACEHOLDER, str(current_session + 1))
             # Format message to include total session if ${total_sessions} is present.
             message = constants.replace_placeholder(message, constants.TOTAL_SESSIONS_PLACEHOLDER, str(pomo.get('sessionCount', 1)))
-            print("\n" + f"{ansi.str_to_color(pomo.get('color')['subtext'])}{ansi.BOLD}{ansi.center_text(message)}")
+            print("\n" + f"{ansi.str_to_color(pomo['subtextColor'])}{ansi.BOLD}{ansi.center_text(message)}")
         else:
             print("\n" + f"{ansi.BOLD}{ansi.center_text(message)}")
 
@@ -300,7 +300,7 @@ def countdown_timer(total_seconds: int, message: str = "Focusing...", end_option
     os.system("clear" if os.name == "posix" else "cls")  # Clear screen before flashing
     countdown_end(end_option)
 
-def pomodoro_timer(name: str, source: int = constants.MAIN_MENU_SOURCE):
+def pomodoro_timer(name: str, source: int = constants.MAIN_MENU_SOURCE, user_settings = settings.load_settings()):
     """
     Runs a Pomodoro timer based on the provided name.
 
@@ -327,7 +327,7 @@ def pomodoro_timer(name: str, source: int = constants.MAIN_MENU_SOURCE):
     """
     global pomo
     global pomo_source
-    pomo = settings.get_pomo(name = name)
+    pomo = settings.get_pomo(user_settings=user_settings, name = name)
     pomo_source = source
 
     # Check if the pomo is not found
