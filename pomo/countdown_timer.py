@@ -334,6 +334,9 @@ def pomodoro_timer(name: str, source: int = constants.MAIN_MENU_SOURCE):
     if pomo is None:
         handle_pomo_not_found(name, pomo_source)
         return
+    
+    # Sets previous pomo attribute
+    settings.set_previous_pomo(name)
 
     # Initialize pomodoro settings
     global sessions

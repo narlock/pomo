@@ -218,3 +218,7 @@ def make_countdown_pomo(focusTime: int, global_settings = load_settings()):
             "subtext": countdown['color']['subtext']
         },
     }
+
+def set_previous_pomo(name: str, global_settings = load_settings()):
+    global_settings['previousPomoName'] = name
+    update_settings(global_settings)

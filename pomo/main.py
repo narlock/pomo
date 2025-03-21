@@ -84,7 +84,8 @@ def show_saved_pomos():
                 settings.update_settings(user_settings)
                 pass
         elif key in constants.KEY_ENTER:
-            countdown_timer.pomodoro_timer(user_settings['pomos'][selected_index]['name'])
+            pomo_name = user_settings['pomos'][selected_index]['name']
+            countdown_timer.pomodoro_timer(pomo_name)
             return
         elif key == constants.EXIT_CMD:
             os.system('clear')
