@@ -177,6 +177,18 @@ def get_pomo(user_settings = load_settings(), name: str = "Default"):
     # No pomo with `name` was found.   
     return None
 
+def get_pomo_index_by_name(user_settings = load_settings(), name: str = "Default"):
+    """
+    Retrieves a pomo index by its name.
+    """
+    for index, pomo in enumerate(user_settings.get("pomos", [])):
+        if pomo.get("name") == name:
+            return index
+
+    # No pomo with `name` was found.   
+    return None
+
+
 def get_list_of_pomo_names(user_settings = load_settings()):
     """
     Returns a list of strings containing each pomo name.

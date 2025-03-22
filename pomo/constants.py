@@ -53,7 +53,8 @@ KEY_RIGHT = "\x1b[C"
 KEY_ENTER = ('\r', '\n')
 KEY_BACK = ('\x7f', '\x08')
 EXIT_CMD = "\x03"  # Ctrl+C
-KEY_DELETE = "d"
+KEY_DELETE = ("d", "D")
+KEY_EDIT = ("e", "E")
 
 # Storage information
 STORAGE_DIR = os.path.expanduser("~/Documents/narlock/pomo")

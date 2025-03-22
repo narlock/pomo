@@ -82,13 +82,17 @@ def show_saved_pomos():
                 selected_index = (selected_index - 1) % len(user_settings['pomos'])
             elif key == constants.KEY_DOWN:
                 selected_index = (selected_index + 1) % len(user_settings['pomos'])
-            elif key == constants.KEY_DELETE:
+            elif key in constants.KEY_DELETE:
                 confirm = input(f"{ansi.YELLOW}{ansi.BOLD}Delete pomo \"{user_settings['pomos'][selected_index]['name']}\"? (y/N) ")
                 if confirm == 'y' or confirm == 'Y':
                     # Delete the pomo from the list
                     del user_settings['pomos'][selected_index]
                     settings.update_settings(user_settings)
                     selected_index = 0
+            elif key in constants.KEY_EDIT:
+                # Open creation interface with existing pomo
+                pomo = user_settings['pomos'][selected_index]
+                show_pomo_create_menu(pomo=pomo)
             elif key in constants.KEY_ENTER:
                 pomo_name = user_settings['pomos'][selected_index]['name']
                 countdown_timer.pomodoro_timer(user_settings=user_settings, name=pomo_name)
@@ -106,8 +110,13 @@ def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
     input_text = f"{ansi.YELLOW}Input:"
     selected_index = 0
     if pomo is None:
+        existing_pomo = False
+        pomo_index = -1
         pomo = settings.DEFAULT_POMO
         pomo['name'] = ''
+    else:
+        existing_pomo = True
+        pomo_index = settings.get_pomo_index_by_name(name=pomo['name'])
 
     while True:
         os.system('clear')
@@ -144,7 +153,7 @@ def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
             if ''.join(pomo['name'].split()) == '':
                 input_text = f"{ansi.RED}Name cannot be empty...{ansi.RESET}"
                 continue
-            elif pomo['name'] in [name['name'] for name in user_settings['pomos']]:
+            elif pomo['name'] in [p['name'] for i, p in enumerate(user_settings['pomos']) if i != pomo_index]:
                 input_text = f"{ansi.RED}Pomo with name \"{pomo['name']}\" already exists... Try a different name...{ansi.RESET}"
                 continue
             elif pomo['borderColor'] not in ansi.VALID_COLORS:
@@ -161,10 +170,15 @@ def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
                 continue
 
             # Save and start
-            user_settings['pomos'].append(pomo)
+            if not existing_pomo:
+                user_settings['pomos'].append(pomo)
+                message = f"{ansi.GREEN}{ansi.BOLD}The pomo \"{pomo['name']}\" was created!{ansi.RESET}"
+            else:
+                message = f"{ansi.GREEN}{ansi.BOLD}The pomo \"{pomo['name']}\" was updated!{ansi.RESET}"
+                
             settings.update_settings(user_settings)
             if source == constants.MAIN_MENU_SOURCE:
-                show_main_menu(message=f"{ansi.GREEN}{ansi.BOLD}The pomo \"{pomo['name']}\" was created!{ansi.RESET}")
+                show_main_menu(message=message)
                 return
             else:
                 return
