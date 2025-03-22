@@ -357,8 +357,76 @@ def show_main_menu_edit_settings(user_settings, source = constants.MAIN_MENU_SOU
                 option_string += key.upper()
                 user_settings['mainMenu'][key_name] = option_string
 
-def show_countdown_edit_settings(user_settings):
-    pass
+def show_countdown_edit_settings(user_settings, source = constants.MAIN_MENU_SOURCE):
+    input_text = f"{ansi.YELLOW}Input (str):"
+    selected_index = 0
+    countdown_settings_size = len(user_settings['countdown'])
+
+    while True:
+        os.system('clear')
+        print(f"{ansi.ORANGE}{ansi.BOLD}Fast Countdown Menu Settings:{ansi.RESET}\n")
+
+        # Show the menu options
+        for index, option in enumerate(user_settings['countdown']):
+            if index == selected_index:
+                print(f"{ansi.BRIGHT_GREEN}{ansi.BOLD}→ {option}: {ansi.RESET}{user_settings['countdown'][option]}")
+            else:
+                print(f"{ansi.GREEN}{option}: {ansi.RESET}{user_settings['countdown'][option]}")
+
+        # Display Input
+        print(f"\n{input_text} {ansi.RESET}{user_settings['countdown'][constants.countdown_options[selected_index]]}", end='')
+        option_type = constants.countdown_type_options[selected_index]
+        key = pomo_key.get_keypress()
+
+        if key == constants.EXIT_CMD:
+            if source == constants.MAIN_MENU_SOURCE:
+                show_settings(source)
+            else:
+                os.system('clear')
+                print(f"{ansi.GREEN}Exiting Pomo...{ansi.RESET}")
+            return
+        elif key == constants.KEY_UP:
+            selected_index = (selected_index - 1) % countdown_settings_size
+        elif key == constants.KEY_DOWN:
+            selected_index = (selected_index + 1) % countdown_settings_size
+        elif key in constants.KEY_ENTER:
+            # Validation
+            if user_settings['countdown']['alarmSound'] != 'Default':
+                input_text = f"{ansi.RED}\"Default\" is the only supported alarmSound...{ansi.RESET}"
+                continue
+            elif user_settings['countdown']['borderColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid borderColor...{ansi.RESET}"
+                continue
+            elif user_settings['countdown']['timeColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid timeColor...{ansi.RESET}"
+                continue
+            elif user_settings['countdown']['subtextColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid subtextColor...{ansi.RESET}"
+                continue
+
+            settings.update_settings(user_settings)
+            show_settings(user_settings, source)
+            return
+        
+        input_text = f"{ansi.YELLOW}Input ({option_type}):"
+        key_name = constants.countdown_options[selected_index]
+
+        if option_type == 'str':
+            # Create string edit interface
+            option_string = user_settings['countdown'][key_name]
+            if key in constants.KEY_BACK:
+                # Delete character from string if possible
+                option_string = option_string[:-1]
+                user_settings['countdown'][key_name] = option_string
+            elif re.fullmatch(constants.POMO_STR_REGEX, key):
+                # Add character from string
+                option_string += key
+                user_settings['countdown'][key_name] = option_string
+        elif option_type == 'bool':
+            option_bool = user_settings['countdown'][key_name]
+            # Create bool edit interface
+            if key == constants.KEY_LEFT or key == constants.KEY_RIGHT:
+                user_settings['countdown'][key_name] = not option_bool
 
 def main():
     args = sys.argv[1:]

@@ -90,6 +90,11 @@ pomo_type_options = ['str', 'int', 'bool', 'int', 'int',
 main_menu_options = ['title', 'borderColor', 'timeColor', 'subtextColor']
 main_menu_type_options = ['str', 'str', 'str', 'str']
 
+# Fast Countdown Options
+countdown_options = ['autoEndCountdown', 'timerEndFlash', 'playAlarmSound', 'alarmSound', 'message',
+                     'borderColor', 'timeColor', 'subtextColor']
+countdown_type_options = ['bool', 'bool', 'bool', 'str', 'str', 'str', 'str', 'str']
+
 def get_pomo_option(index, pomo):
     return pomo[pomo_options[index]]
     
