@@ -59,11 +59,9 @@ TEST_POMO = {
 INITIAL_SETTINGS = {
     "mainMenu": {
         "title": "POMO",
-        "color": {
-            "border": "RED",
-            "time": "YELLOW",
-            "subtext": "BLUE" 
-        }
+        "borderColor": "RED",
+        "timeColor": "YELLOW",
+        "subtextColor": "BLUE"
     },
     "previousPomoName": "Default",
     "pomos": [

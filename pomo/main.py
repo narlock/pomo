@@ -18,10 +18,7 @@ import time
 user_settings = None
 
 # Other
-POMO_ANSI = ["", "", "", "", ""]
-for char in 'POMO':
-    for i in range(5):
-        POMO_ANSI[i] += ansi.ascii_letters[char][i] + "  "
+POMO_ANSI = None
 
 def show_help():
     print(constants.HELP)
@@ -29,9 +26,12 @@ def show_help():
 def show_main_menu(selection: str = constants.CHOOSE_SELECTION, message: str = constants.get_version_info()):
     global user_settings
     user_settings = settings.load_settings()
-    
+    load_title()
+    if message == constants.get_version_info():
+        message = f"{constants.get_version_info(user_settings['mainMenu']['subtextColor'])}"
+
     os.system('clear')
-    countdown_timer.draw_countdown_timer(POMO_ANSI, message)
+    countdown_timer.draw_countdown_timer(POMO_ANSI, message, ansi.str_to_color(user_settings['mainMenu']['borderColor']), ansi.str_to_color(user_settings['mainMenu']['timeColor']))
     print(f"{ansi.RESET}{ansi.center_text(constants.MENU_CONTROLS)}")
     print(selection)
     
@@ -54,6 +54,8 @@ def show_main_menu(selection: str = constants.CHOOSE_SELECTION, message: str = c
         show_saved_pomos()
     elif key == constants.KEY_3:
         show_pomo_create_menu()
+    elif key == constants.KEY_4:
+        show_settings(user_settings)
     elif key == constants.KEY_5:
         # Debug
         message = user_settings.get('pomos')[0].get('sessionMessage')
@@ -238,12 +240,133 @@ def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
 def get_pomo_info(pomo):
     return f"{pomo['name']} — {pomo['sessionCount']} sessions, {int(int(pomo['focusTime']) / 60)}/{int(int(pomo['shortBreakTime']) / 60)}, long: {pomo['longBreakAfterSessions']}"
 
+def show_settings(user_settings, source = constants.MAIN_MENU_SOURCE):
+    selected_index = 0
+    settings_size = 2 # Main menu and fast countdown are the only settings as of now
+
+    while True:
+        os.system('clear')
+        print(f"{ansi.ORANGE}{ansi.BOLD}Settings:{ansi.RESET}\n")
+
+        # Show main menu settings option
+        if selected_index == 0:
+            # Main menu setting is selected
+            print(f"{ansi.BRIGHT_GREEN}{ansi.BOLD}→ Main Menu Settings{ansi.RESET}")
+        else:
+            # Main menu setting is NOT selected
+            print(f"{ansi.GREEN}Main Menu Settings{ansi.RESET}")
+
+        # Show fast countdown settings option
+        if selected_index == 1:
+            # Fast countdown setting is selected
+            print(f"{ansi.BRIGHT_GREEN}{ansi.BOLD}→ Fast Countdown Settings{ansi.RESET}")
+        else:
+            # Fast countdown setting is NOT selected
+            print(f"{ansi.GREEN}Fast Countdown Settings{ansi.RESET}")
+
+        print()
+        key = pomo_key.get_keypress()
+        
+        if key == constants.EXIT_CMD:
+            if source == constants.MAIN_MENU_SOURCE:
+                show_main_menu()
+            else:
+                os.system('clear')
+                print(f"{ansi.GREEN}Exiting Pomo...{ansi.RESET}")
+            return
+        if key == constants.KEY_UP:
+            selected_index = (selected_index - 1) % settings_size
+        if key == constants.KEY_DOWN:
+            selected_index = (selected_index + 1) % settings_size
+        if key in constants.KEY_ENTER:
+            if selected_index == 1:
+                show_countdown_edit_settings(user_settings)
+                return
+            else:
+                show_main_menu_edit_settings(user_settings, source)
+                return
+
+def show_main_menu_edit_settings(user_settings, source = constants.MAIN_MENU_SOURCE):
+    input_text = f"{ansi.YELLOW}Input (str):"
+    selected_index = 0
+    main_menu_settings_size = len(user_settings['mainMenu'])
+
+    while True:
+        os.system('clear')
+        print(f"{ansi.ORANGE}{ansi.BOLD}Main Menu Settings:{ansi.RESET}\n")
+
+        # Show the menu options
+        for index, option in enumerate(user_settings['mainMenu']):
+            if index == selected_index:
+                print(f"{ansi.BRIGHT_GREEN}{ansi.BOLD}→ {option}: {ansi.RESET}{user_settings['mainMenu'][option]}")
+            else:
+                print(f"{ansi.GREEN}{option}: {ansi.RESET}{user_settings['mainMenu'][option]}")
+
+        # Display Input
+        print(f"\n{input_text} {ansi.RESET}{user_settings['mainMenu'][constants.main_menu_options[selected_index]]}", end='')
+        option_type = constants.main_menu_type_options[selected_index]
+        key = pomo_key.get_keypress()
+
+        if key == constants.EXIT_CMD:
+            if source == constants.MAIN_MENU_SOURCE:
+                show_settings(user_settings)
+            else:
+                os.system('clear')
+                print(f"{ansi.GREEN}Exiting Pomo...{ansi.RESET}")
+            return
+        elif key == constants.KEY_UP:
+            selected_index = (selected_index - 1) % main_menu_settings_size
+        elif key == constants.KEY_DOWN:
+            selected_index = (selected_index + 1) % main_menu_settings_size
+        elif key in constants.KEY_ENTER:
+            # Save settings and return to show_settings
+
+            # Validation
+            if ''.join(user_settings['mainMenu']['title'].split()) == '':
+                input_text = f"{ansi.RED}Title cannot be empty...{ansi.RESET}"
+                continue
+            if len(user_settings['mainMenu']['title']) > 6:
+                input_text = f"{ansi.RED}Title cannot be larger than 6 characters...{ansi.RESET}"
+                continue
+            elif user_settings['mainMenu']['borderColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid borderColor...{ansi.RESET}"
+                continue
+            elif user_settings['mainMenu']['timeColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid timeColor...{ansi.RESET}"
+                continue
+            elif user_settings['mainMenu']['subtextColor'] not in ansi.VALID_COLORS:
+                input_text = f"{ansi.RED}Invalid subtextColor...{ansi.RESET}"
+                continue
+
+            settings.update_settings(user_settings)
+            show_settings(user_settings, source)
+            return
+        
+        input_text = f"{ansi.YELLOW}Input ({option_type}):"
+        key_name = constants.main_menu_options[selected_index]
+
+        if option_type == 'str':
+            # Create string edit interface
+            option_string = user_settings['mainMenu'][key_name]
+            if key in constants.KEY_BACK:
+                # Delete character from string if possible
+                option_string = option_string[:-1]
+                user_settings['mainMenu'][key_name] = option_string
+            elif re.fullmatch(constants.POMO_ALPHA_REGEX, key):
+                # Add character from string
+                option_string += key.upper()
+                user_settings['mainMenu'][key_name] = option_string
+
+def show_countdown_edit_settings(user_settings):
+    pass
+
 def main():
     args = sys.argv[1:]
 
     # Load user settings
     global user_settings
     user_settings = settings.load_settings()
+    load_title()
 
     if not args:
         show_main_menu()
@@ -254,8 +377,7 @@ def main():
         show_pomo_create_menu(source=constants.COMMAND_LINE_SOURCE)
     elif args[0] == constants.SETTINGS_CMD:
         # Enter Settings Menu
-        print('Entering settings menu')
-        pass
+        show_settings(user_settings, constants.COMMAND_LINE_SOURCE)
     elif args[0] == constants.LIST_CMD:
         # List the available pomos
         print(f"{ansi.GREEN}Pomos:{ansi.RESET} {settings.get_list_of_pomo_names(user_settings)}")
@@ -301,6 +423,15 @@ def main():
         countdown_timer.pomodoro_timer_global(minutes * 60)
     else:
         show_main_menu()
+
+def load_title():
+    global POMO_ANSI
+    ascii_height = len(ansi.ascii_letters['P'])  # Assuming all letters have the same height
+    POMO_ANSI = [""] * ascii_height
+
+    for char in user_settings['mainMenu']['title']:
+        for i in range(ascii_height):
+            POMO_ANSI[i] += ansi.ascii_letters[char][i] + "  "
 
 if __name__ == '__main__':
     main()

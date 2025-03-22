@@ -86,6 +86,10 @@ pomo_type_options = ['str', 'int', 'bool', 'int', 'int',
                      'bool', 'str', 'bool', 'str', 'str', 'str',
                      'str', 'str', 'str']
 
+# Main Menu Options
+main_menu_options = ['title', 'borderColor', 'timeColor', 'subtextColor']
+main_menu_type_options = ['str', 'str', 'str', 'str']
+
 def get_pomo_option(index, pomo):
     return pomo[pomo_options[index]]
     
@@ -94,6 +98,7 @@ def get_pomo_key(index):
 
 POMO_STR_REGEX = r'^[A-Za-z0-9\s\-\_\.\$\{\}\!\@\#\%\^\&\*\(\)]+$'
 POMO_INT_REGEX = r'^\d+$'
+POMO_ALPHA_REGEX = r'^[A-Za-z]+$'
 
 def get_comma_sep_string(list_of_int):
     return ', '.join(str(i) for i in list_of_int)
