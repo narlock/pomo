@@ -1,3 +1,12 @@
+"""
+Pomo - countdown_timer.py
+author: narlock
+
+This file handles the countdown timer part of the program.
+It can display the countdown timer, handle pomo logic, and
+save information to the disk based on session/break completion.
+"""
+
 import main
 import ansi
 import time

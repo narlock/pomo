@@ -13,17 +13,26 @@ import os
 import pomo_key
 import settings
 import re
-import time
 
-user_settings = None
-
-# Other
-POMO_ANSI = None
+user_settings = None # Global Settings
+POMO_ANSI = None # Title Screen ANSI text
 
 def show_help():
+    """
+    Prints out the options of the pomo command line
+    application to the screen.
+    """
     print(constants.HELP)
 
 def show_main_menu(selection: str = constants.CHOOSE_SELECTION, message: str = constants.get_version_info()):
+    """
+    Displays the main menu of the pomo command line
+    interface application to the screen.
+
+    Uses the pomo_key.get_keypress function to get input
+    from the user to determine the path to go in the
+    application.
+    """
     global user_settings
     user_settings = settings.load_settings()
     load_title()
@@ -65,6 +74,15 @@ def show_main_menu(selection: str = constants.CHOOSE_SELECTION, message: str = c
         show_main_menu(constants.INVALID_SELECTION)
 
 def show_saved_pomos():
+    """
+    Displays an interface that shows the pomos that are saved
+    in the settings.json file in Documents/narlock/pomo/settings.json
+
+    Users can...
+        start a pomo session by pressing ENTER on their selected pomo.
+        edit an existing pomo by pressing 'e' on their selected pomo.
+        delete an existing pomo by pressing 'd' on their selected pomo.
+    """
     selected_index = 0
 
     while True:
@@ -109,6 +127,11 @@ def show_saved_pomos():
             show_main_menu()
         
 def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
+    """
+    Displays the inferface for creating or updating a pomo item.
+    If pomo parameter is None, then we are creating a new pomo. Otherwise,
+    we are updating an existing pomo item.
+    """
     input_text = f"{ansi.YELLOW}Input (str):"
     selected_index = 0
     if pomo is None:
@@ -238,9 +261,16 @@ def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
         print(pomo)
 
 def get_pomo_info(pomo):
+    """
+    Retrieves a formatted information string for a pomo
+    """
     return f"{pomo['name']} — {pomo['sessionCount']} sessions, {int(int(pomo['focusTime']) / 60)}/{int(int(pomo['shortBreakTime']) / 60)}, long: {pomo['longBreakAfterSessions']}"
 
 def show_settings(user_settings, source = constants.MAIN_MENU_SOURCE):
+    """
+    Displays the interface for settings. This is a navigation screen
+    that allows the user to select what settings they want to change.
+    """
     selected_index = 0
     settings_size = 2 # Main menu and fast countdown are the only settings as of now
 
@@ -287,6 +317,9 @@ def show_settings(user_settings, source = constants.MAIN_MENU_SOURCE):
                 return
 
 def show_main_menu_edit_settings(user_settings, source = constants.MAIN_MENU_SOURCE):
+    """
+    Displays the interface for editing the main menu settings
+    """
     input_text = f"{ansi.YELLOW}Input (str):"
     selected_index = 0
     main_menu_settings_size = len(user_settings['mainMenu'])
@@ -358,6 +391,9 @@ def show_main_menu_edit_settings(user_settings, source = constants.MAIN_MENU_SOU
                 user_settings['mainMenu'][key_name] = option_string
 
 def show_countdown_edit_settings(user_settings, source = constants.MAIN_MENU_SOURCE):
+    """
+    Displays the interface for editing the fast countdown settings
+    """
     input_text = f"{ansi.YELLOW}Input (str):"
     selected_index = 0
     countdown_settings_size = len(user_settings['countdown'])
