@@ -31,6 +31,8 @@ Where args include:\n
 """
 POMO_CMD = "-p"
 POMO_CREATE_CMD = "-n"
+POMO_EDIT_CMD = "-e"
+POMO_DELETE_CMD = "-d"
 SETTINGS_CMD = "-s"
 LIST_CMD = "-ls"
 

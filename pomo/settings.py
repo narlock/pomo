@@ -186,8 +186,7 @@ def get_pomo_index_by_name(user_settings = load_settings(), name: str = "Default
             return index
 
     # No pomo with `name` was found.   
-    return None
-
+    return -1
 
 def get_list_of_pomo_names(user_settings = load_settings()):
     """

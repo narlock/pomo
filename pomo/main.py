@@ -107,20 +107,22 @@ def show_saved_pomos():
             show_main_menu()
         
 def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
-    input_text = f"{ansi.YELLOW}Input:"
+    input_text = f"{ansi.YELLOW}Input (str):"
     selected_index = 0
     if pomo is None:
+        header_message = f"{ansi.ORANGE}{ansi.BOLD}Pomo Creation Interface:{ansi.RESET}\n"
         existing_pomo = False
         pomo_index = -1
         pomo = settings.DEFAULT_POMO
         pomo['name'] = ''
     else:
+        header_message = f"{ansi.ORANGE}{ansi.BOLD}Pomo Update Interface:{ansi.RESET}\n"
         existing_pomo = True
         pomo_index = settings.get_pomo_index_by_name(name=pomo['name'])
 
     while True:
         os.system('clear')
-        print(f"{ansi.ORANGE}{ansi.BOLD}Pomo Creation Interface:{ansi.RESET}\n")
+        print(header_message)
         for index, option in enumerate(constants.pomo_options):
             if index == selected_index:
                 print(f"{ansi.BRIGHT_GREEN}{ansi.BOLD}→ {option}: {ansi.RESET}{constants.get_pomo_option(index, pomo)}")
@@ -169,13 +171,14 @@ def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
                 input_text = f"{ansi.RED}\"Default\" is the only supported alarmSound...{ansi.RESET}"
                 continue
 
+            os.system('clear')
             # Save and start
             if not existing_pomo:
                 user_settings['pomos'].append(pomo)
                 message = f"{ansi.GREEN}{ansi.BOLD}The pomo \"{pomo['name']}\" was created!{ansi.RESET}"
             else:
                 message = f"{ansi.GREEN}{ansi.BOLD}The pomo \"{pomo['name']}\" was updated!{ansi.RESET}"
-                
+
             settings.update_settings(user_settings)
             if source == constants.MAIN_MENU_SOURCE:
                 show_main_menu(message=message)
@@ -229,6 +232,8 @@ def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
                 # Add character from string
                 option_string += key
                 pomo[key_name] = constants.parse_int_list(option_string)
+            
+        print(pomo)
 
 def get_pomo_info(pomo):
     return f"{pomo['name']} — {pomo['sessionCount']} sessions, {int(int(pomo['focusTime']) / 60)}/{int(int(pomo['shortBreakTime']) / 60)}, long: {pomo['longBreakAfterSessions']}"
@@ -260,6 +265,35 @@ def main():
     elif len(args) == 2 and args[0] == constants.POMO_CMD:
         # Start pomo with saved setting.
         countdown_timer.pomodoro_timer(args[1], constants.COMMAND_LINE_SOURCE)
+    elif len(args) == 2 and args[0] == constants.POMO_EDIT_CMD:
+        # Enter edit mode with existing pomo where args[1] is pomo
+        pomo_index = settings.get_pomo_index_by_name(name=args[1])
+
+        # Ensure the pomo is not none
+        if pomo_index == -1:
+            print(constants.POMO_NOT_FOUND(args[1])) 
+            return
+        
+        pomo = user_settings['pomos'][pomo_index] # Reference user_settings pomo
+        show_pomo_create_menu(pomo=pomo, source=constants.COMMAND_LINE_SOURCE)
+    elif len(args) == 2 and args[0] == constants.POMO_DELETE_CMD:
+        # Delete the pomo with the name in args[1]
+        pomo_index = settings.get_pomo_index_by_name(name=args[1])
+        
+        # Ensure the pomo is not none
+        if pomo_index == -1:
+            print(constants.POMO_NOT_FOUND(args[1])) 
+            return
+        
+        confirm = input(f"{ansi.YELLOW}{ansi.BOLD}Delete pomo \"{user_settings['pomos'][pomo_index]['name']}\"? (y/N) ")
+        if confirm == 'y' or confirm == 'Y':
+            del user_settings['pomos'][pomo_index]
+            settings.update_settings(user_settings)
+            print(f"{ansi.GREEN}Pomo {args[1]} was deleted...")
+            return
+        else:
+            print(f"{ansi.YELLOW}Canceled deletion...")
+            return
     elif len(args) == 1 and int(args[0]):
         # Start a pomodoro where args[0] is amount of time in minutes.
         minutes = int(args[0])
