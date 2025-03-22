@@ -257,8 +257,6 @@ def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
                 # Add character from string
                 option_string += key
                 pomo[key_name] = constants.parse_int_list(option_string)
-            
-        print(pomo)
 
 def get_pomo_info(pomo):
     """
