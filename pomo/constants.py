@@ -20,10 +20,12 @@ Usage: pomo [args]\n
 Where args include:\n
 \t(no args)         Start pomo at main menu.
 \t-p                Start pomo with previous setting.
-\t-n                Enter new pomo creation.
-\t-s                Enter settings.
-\t<int>             Start single session pomo for <int> minutes.
 \t<pomo_name>       Start pomo by pomo name.
+\t<int>             Start single session pomo for <int> minutes.
+\t-n                Enter new pomo creation.
+\t-e <pomo_name>    Edit an existing pomo.
+\t-d <pomo_name>    Delete an existing pomo.
+\t-s                Enter settings.
 \t-ls               View saved pomos.
 \nView demonstration on {ansi.ansi_link('https://github.com/narlock/pomo', 'GitHub')}.
 """

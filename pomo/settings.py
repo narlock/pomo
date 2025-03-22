@@ -6,6 +6,7 @@ This file controls reading and writing settings to
 ~/Documents/narlock/pomo/settings.json
 """
 
+import ansi
 import json
 from pathlib import Path
 
@@ -142,9 +143,9 @@ def update_settings(settings):
     try:
         with open(SETTINGS_PATH, 'w', encoding='utf-8') as f:
             json.dump(settings, f, indent=4)
-        print("Settings updated successfully.")
+        print(f"\n{ansi.GREEN}{ansi.BOLD}Settings updated successfully.{ansi.RESET}")
     except Exception as e:
-        print(f"Error updating settings: {e}")
+        print(f"{ansi.RED}{ansi.BOLD}Error updating settings: {e}{ansi.RESET}")
 
 def load_settings():
     """

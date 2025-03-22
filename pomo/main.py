@@ -102,7 +102,7 @@ def show_saved_pomos():
             key = pomo_key.get_keypress()
             show_main_menu()
         
-def show_pomo_create_menu(pomo = None):
+def show_pomo_create_menu(pomo = None, source = constants.MAIN_MENU_SOURCE):
     input_text = f"{ansi.YELLOW}Input:"
     selected_index = 0
     if pomo is None:
@@ -163,8 +163,11 @@ def show_pomo_create_menu(pomo = None):
             # Save and start
             user_settings['pomos'].append(pomo)
             settings.update_settings(user_settings)
-            show_main_menu()
-            return
+            if source == constants.MAIN_MENU_SOURCE:
+                show_main_menu(message=f"{ansi.GREEN}{ansi.BOLD}The pomo \"{pomo['name']}\" was created!{ansi.RESET}")
+                return
+            else:
+                return
 
         key_name = constants.pomo_options[selected_index]
         input_text = f"{ansi.YELLOW}Input ({option_type}):"
@@ -229,8 +232,7 @@ def main():
         show_help()
     elif args[0] == constants.POMO_CREATE_CMD:
         # Enter Creation Menu
-        print('Entering creation menu')
-        pass
+        show_pomo_create_menu(source=constants.COMMAND_LINE_SOURCE)
     elif args[0] == constants.SETTINGS_CMD:
         # Enter Settings Menu
         print('Entering settings menu')
