@@ -1,0 +1,25 @@
+---
+layout: post
+title:  "Pomo v1.0.0"
+date:   2025-03-22 12:15:00 -0500
+categories: jekyll update
+---
+
+Release on GitHub can be found [here](https://github.com/narlock/pomo/releases/tag/v1.0.0).
+
+## Introducing Pomo
+I've started using the terminal a lot more in the day to day and I wanted to start making different tools to help enhance my terminal experience. Pomo is one of those terminal applications. It is a simple but powerful pomodoro timer application that runs entirely inside of the terminal.
+
+The first release introduces the essentials for a pomodoro application: ability to participate in focus periods followed by break periods. Pomo offers the ability to create custom pomo sessions so that you can repeat saved pomo sessions in the future. It also allows for a fully customizable experience for your pomo.
+
+## Features Implemented
+- Interactive menu (`pomo`)
+- Pomo command line interface (`pomo -help` for more information)
+- Create, edit, and delete custom Pomos
+- Countdown timer that counts down during pomodoro sessions
+- Ending flash animation and sound effect played at the end of sessions ("Default" is the only available sound as of v1.0.0)
+- Fast countdown: a simple way to start a basic countdown timer outside of custom pomos (`pomo <int>`)
+- Settings: customize the main menu and fast countdown settings (`pomo -s`)
+
+## Installing
+Installing is made very simple. However, it is only available currently for Mac OS and Linux computer systems. Simply give permission to the `install.sh` script and execute. More information for installing can be found in the [install guide](https://pomo.narlock.dev/install/).
