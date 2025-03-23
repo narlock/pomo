@@ -8,7 +8,7 @@ permalink: /install/
 Installing and using Pomo is relatively easy. However, version v1.0.0 only supports macOS and Linux computer systems.
 
 1. Ensure that you have [Python](https://www.python.org/) installed on your computer system. You can check if you have Python installed by opening your terminal and typing `python3 --version`.
-2. Download the latest release of Pomo from https://github.com/narlock/pomo/releases, this will be in a ZIP file.
+2. Download the latest release of Pomo from [https://github.com/narlock/pomo/releases](https://github.com/narlock/pomo/releases), this will be in a ZIP file.
 3. Extract the ZIP file to a location on your computer. The ZIP file will contain the bash scripts for installing (`install.sh`) and uninstalling (`uninstall.sh`) the program. The "mark" directory contains the source code for the version of Pomo.
 4. Allow executing the install script by opening the terminal in the directory that contains the install script and type: `chmod +x install.sh`.
 5. Next, run the install script by entering `./install.sh`
