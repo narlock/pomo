@@ -14,6 +14,14 @@
   <p>
     <img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54" alt="Python Badge" />
   </p>
+
+  <!-- GitHub Shields-->
+  <p align="center">
+    <a href="https://github.com/narlock/pomo/releases/"><img src="https://img.shields.io/github/downloads/narlock/pomo/total.svg"></a>
+    <a href="https://github.com/narlock/pomo/releases/"><img src="https://img.shields.io/github/v/release/narlock/pomo"></a>
+    <a href="https://github.com/narlock/pomo/commits/main"><img src="https://img.shields.io/github/last-commit/narlock/pomo"></a>
+    <a href="https://discord.gg/eEbEYbXaNS"><img src="https://discordapp.com/api/guilds/821757961830793236/widget.png?style=shield"></a>
+  </p>
 </div>
 
 Pomo is a fully customizable command-line Pomodoro timer designed for users who prefer a simple yet powerful productivity tool. Built for keyboard-driven workflows, Pomo runs entirely in the terminal, making it fast and accessible without ever leaving the keyboard.
